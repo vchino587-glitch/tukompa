@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>TuKompa</title>
+  <link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -121,7 +123,8 @@ function sp(t){if('speechSynthesis' in window){window.speechSynthesis.cancel();v
 function tm(){var S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return;if(LI){if(RC)RC.stop();return}RC=new S();RC.lang='es-AR';RC.interimResults=true;RC.onresult=function(e){document.getElementById('mi').value=Array.from(e.results).map(function(r){return r[0].transcript}).join('');us()};RC.onend=function(){LI=false;um();if(document.getElementById('mi').value.trim())setTimeout(sn,400)};RC.onerror=function(){LI=false;um()};RC.start();LI=true;um()}
 function um(){var b=document.getElementById('mb');b.className=LI?'mc on':'mc';b.textContent=LI?'⏹':'🎙️';document.getElementById('st').textContent=LI?'🔴 Escuchándote...':'Tu acompañante de vida'}
 function us(){var b=document.getElementById('sB'),v=document.getElementById('mi').value.trim();b.style.background=v?'linear-gradient(135deg,#d4c5a9,#c8a96e)':'rgba(255,255,255,.03)';b.style.opacity=v?'1':'.3'}
-window.onload=function(){var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}if('speechSynthesis' in window)window.speechSynthesis.getVoices()};
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
+  window.onload=function(){var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}if('speechSynthesis' in window)window.speechSynthesis.getVoices()};
 </script>
 </body>
 </html>
