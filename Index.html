@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>TuKompa</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#0a1628;color:#d4c5a9;min-height:100vh}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.06)}}
+@keyframes glow{0%,100%{box-shadow:0 0 15px rgba(200,169,110,.15)}50%{box-shadow:0 0 30px rgba(200,169,110,.3)}}
+@keyframes tp{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:rgba(200,169,110,.15)}
+input::placeholder,textarea::placeholder{color:rgba(200,169,110,.25)!important}
+.sc{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(170deg,#060610,#0a1628,#0c1a2e)}
+.cd{max-width:420px;width:100%;animation:fadeUp .5s}
+.btn{display:block;width:100%;padding:15px;background:linear-gradient(135deg,#d4c5a9,#c8a96e);border:none;border-radius:16px;color:#0a0a12;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn2{display:block;width:100%;padding:13px;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.12);border-radius:16px;color:#7a8ba8;font-size:13px;cursor:pointer;margin-top:10px}
+.inp{width:100%;padding:13px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.1);border-radius:14px;color:#d4c5a9;font-size:16px;outline:none}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.opt{padding:14px 10px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;cursor:pointer;text-align:center}
+.opt.sel{background:rgba(200,169,110,.08);border-color:rgba(200,169,110,.25)}
+.ch{display:flex;flex-direction:column;height:100vh;background:linear-gradient(170deg,#060610,#0a1628,#0c1a2e)}
+.chd{padding:12px 16px;border-bottom:1px solid rgba(200,169,110,.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.av{width:36px;height:36px;border-radius:50%;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);display:flex;align-items:center;justify-content:center;font-size:16px;animation:glow 3s ease-in-out infinite}
+.ms{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.mg{max-width:82%;animation:fadeUp .3s}
+.mu{align-self:flex-end}
+.ma{align-self:flex-start}
+.bb{padding:12px 16px;font-family:'Playfair Display',serif;font-size:15px;line-height:1.8}
+.mu .bb{background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.18);border-radius:18px 18px 4px 18px}
+.ma .bb{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:18px 18px 18px 4px;color:#c9d1d9}
+.dt{display:flex;gap:5px;padding:12px 16px;align-self:flex-start}
+.dt span{width:6px;height:6px;border-radius:50%;background:#4a5568}
+.dt span:nth-child(1){animation:tp 1.2s ease infinite}
+.dt span:nth-child(2){animation:tp 1.2s ease .2s infinite}
+.dt span:nth-child(3){animation:tp 1.2s ease .4s infinite}
+.ci{padding:10px 14px 20px;border-top:1px solid rgba(255,255,255,.04);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.ci textarea{flex:1;padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.08);border-radius:22px;color:#d4c5a9;font-size:15px;font-family:'Playfair Display',serif;outline:none;resize:none;max-height:100px}
+.mc{width:44px;height:44px;border-radius:50%;border:1px solid rgba(200,169,110,.15);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(200,169,110,.08);color:#c8a96e}
+.mc.on{background:rgba(231,76,60,.15);border-color:rgba(231,76,60,.3);color:#E74C3C;animation:pulse 1s ease infinite}
+.sb{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#0a0a12}
+.ft{padding:3px 14px 10px;text-align:center;color:rgba(255,255,255,.06);font-size:7px;flex-shrink:0}
+.h{display:none}
+</style>
+</head>
+<body>
+<div id="p0" class="sc"><div class="cd" style="text-align:center">
+<div style="font-size:52px;margin-bottom:10px;animation:float 3s ease-in-out infinite">🌿</div>
+<h1 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:300;letter-spacing:5px;margin-bottom:4px">TuKompa</h1>
+<p style="color:#c8a96e;font-size:12px;letter-spacing:3px;margin-bottom:20px">Tu acompañante de vida</p>
+<p style="color:#5a6680;font-size:13px;line-height:1.8;max-width:320px;margin:0 auto 22px">Solo háblame. Yo te escucho, te conozco, te acompaño. Sin juicio. Sin prisa.</p>
+<button class="btn" onclick="go(1)">Empezar</button>
+<button class="btn2" onclick="var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}">Ya tengo cuenta</button>
+</div></div>
+
+<div id="p1" class="sc h"><div class="cd">
+<p style="color:#c8a96e;font-size:18px;font-family:'Playfair Display',serif;font-style:italic;margin-bottom:18px">¿Cómo te llamas?</p>
+<input id="ni" class="inp" placeholder="Tu nombre..." style="font-size:20px;margin-bottom:18px">
+<button class="btn" onclick="var n=document.getElementById('ni').value.trim();if(n){UN=n;go(2)}">Siguiente</button>
+</div></div>
+
+<div id="p2" class="sc h"><div class="cd">
+<p style="color:#c8a96e;font-size:18px;font-family:'Playfair Display',serif;font-style:italic;margin-bottom:18px">¿Cómo querés que te acompañe?</p>
+<div class="opts" id="co">
+<div class="opt" onclick="sc(this,'Amiga')"><div style="font-size:22px">👩</div><div style="font-size:12px;margin-top:4px">Amiga</div></div>
+<div class="opt" onclick="sc(this,'Amigo')"><div style="font-size:22px">👨</div><div style="font-size:12px;margin-top:4px">Amigo</div></div>
+<div class="opt" onclick="sc(this,'Guía espiritual')"><div style="font-size:22px">🙏</div><div style="font-size:12px;margin-top:4px">Guía espiritual</div></div>
+<div class="opt" onclick="sc(this,'Coach')"><div style="font-size:22px">💪</div><div style="font-size:12px;margin-top:4px">Coach</div></div>
+<div class="opt" onclick="sc(this,'Terapeuta')"><div style="font-size:22px">🧠</div><div style="font-size:12px;margin-top:4px">Terapeuta</div></div>
+<div class="opt" onclick="sc(this,'Mentor')"><div style="font-size:22px">🌟</div><div style="font-size:12px;margin-top:4px">Mentor</div></div>
+<div class="opt" onclick="sc(this,'Confidente')"><div style="font-size:22px">🤫</div><div style="font-size:12px;margin-top:4px">Confidente</div></div>
+<div class="opt" onclick="sc(this,'Compañero')"><div style="font-size:22px">🤝</div><div style="font-size:12px;margin-top:4px">Compañero</div></div>
+</div>
+<button class="btn" onclick="if(CT)go(3)">Siguiente</button>
+</div></div>
+
+<div id="p3" class="sc h"><div class="cd">
+<p style="color:#c8a96e;font-size:18px;font-family:'Playfair Display',serif;font-style:italic;margin-bottom:18px">¿Tenés un camino espiritual?</p>
+<div class="opts" id="so">
+<div class="opt" onclick="ss(this,'cristiano')"><div style="font-size:22px">✝️</div><div style="font-size:12px;margin-top:4px">Cristiano</div></div>
+<div class="opt" onclick="ss(this,'musulman')"><div style="font-size:22px">☪️</div><div style="font-size:12px;margin-top:4px">Islam</div></div>
+<div class="opt" onclick="ss(this,'judio')"><div style="font-size:22px">✡️</div><div style="font-size:12px;margin-top:4px">Judaísmo</div></div>
+<div class="opt" onclick="ss(this,'budista')"><div style="font-size:22px">☸️</div><div style="font-size:12px;margin-top:4px">Budismo</div></div>
+<div class="opt" onclick="ss(this,'hindu')"><div style="font-size:22px">🕉️</div><div style="font-size:12px;margin-top:4px">Hinduismo</div></div>
+<div class="opt" onclick="ss(this,'espiritual')"><div style="font-size:22px">✨</div><div style="font-size:12px;margin-top:4px">Espiritual</div></div>
+<div class="opt" onclick="ss(this,'ancestral')"><div style="font-size:22px">🌍</div><div style="font-size:12px;margin-top:4px">Ancestral</div></div>
+<div class="opt" onclick="ss(this,'ninguno')"><div style="font-size:22px">💚</div><div style="font-size:12px;margin-top:4px">Ninguno</div></div>
+</div>
+<button class="btn" onclick="sv();oc()">Comenzar</button>
+</div></div>
+
+<div id="cb" class="ch h">
+<div class="chd"><div class="av">🌿</div><div style="flex:1"><div style="color:#d4c5a9;font-size:14px;font-weight:600">TuKompa</div><div style="color:#4a5568;font-size:10px" id="st">Tu acompañante de vida</div></div></div>
+<div class="ms" id="mg"></div>
+<div class="dt h" id="dd"><span></span><span></span><span></span></div>
+<div class="ci">
+<button class="mc" id="mb" onclick="tm()">🎙️</button>
+<textarea id="mi" placeholder="Háblame..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sn()}" oninput="us()"></textarea>
+<button class="sb" id="sB" onclick="sn()" style="background:rgba(255,255,255,.03);opacity:.3">↑</button>
+</div>
+<div class="ft">TuKompa acompaña sin juzgar · No sustituye atención profesional</div>
+</div>
+
+<script>
+var UN='',CT='',SP='ninguno',HS=[],RC=null,LI=false;
+function go(n){for(var i=0;i<4;i++)document.getElementById('p'+i).classList.add('h');document.getElementById('p'+n).classList.remove('h')}
+function sc(e,v){CT=v;document.querySelectorAll('#co .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function ss(e,v){SP=v;document.querySelectorAll('#so .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function sv(){localStorage.setItem('tk_n',UN);localStorage.setItem('tk_c',CT);localStorage.setItem('tk_s',SP)}
+function oc(){for(var i=0;i<4;i++)document.getElementById('p'+i).classList.add('h');document.getElementById('cb').classList.remove('h');var h=new Date().getHours();var g=h<12?'Hola '+UN+'. Soy TuKompa, tu '+CT.toLowerCase()+'. Estoy acá para escucharte. ¿Cómo estás?':h<18?UN+', bienvenido. Soy TuKompa, tu '+CT.toLowerCase()+'. Solo háblame.':'Buenas noches, '+UN+'. Soy TuKompa, tu '+CT.toLowerCase()+'. Estoy acá para escucharte.';am('a',g);sp(g)}
+function am(r,t){HS.push({role:r==='a'?'assistant':'user',content:t});var d=document.createElement('div');d.className='mg '+(r==='a'?'ma':'mu');d.innerHTML='<div class="bb">'+t+'</div>';document.getElementById('mg').appendChild(d);document.getElementById('mg').scrollTop=999999}
+async function sn(){var ip=document.getElementById('mi');var t=ip.value.trim();if(!t)return;am('u',t);ip.value='';us();document.getElementById('dd').classList.remove('h');document.getElementById('st').textContent='Pensando...';try{var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,userName:UN,companionType:CT,spiritualPath:SP,history:HS.slice(-10)})});var d=await r.json();document.getElementById('dd').classList.add('h');document.getElementById('st').textContent='Tu acompañante de vida';if(d.response){am('a',d.response);sp(d.response)}else{am('a',fb(t))}}catch(e){document.getElementById('dd').classList.add('h');document.getElementById('st').textContent='Tu acompañante de vida';am('a',fb(t))}}
+function fb(m){var l=m.toLowerCase(),n=UN;if(['suicid','matarme','morir'].some(function(w){return l.includes(w)}))return n+', lo que sentís es real. No estás solo. AR 135, MX 800-911-2000, US 988. 💙';if(['triste','mal','dolor'].some(function(w){return l.includes(w)}))return'Eso pesa, '+n+'. Acá estoy.';if(['feliz','bien','genial'].some(function(w){return l.includes(w)}))return'Eso se siente hasta acá, '+n+'.';var d=[n+', te escucho.','Estoy acá, '+n+'.','Seguí, '+n+'.'];return d[Math.floor(Math.random()*d.length)]}
+function sp(t){if('speechSynthesis' in window){window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='es-AR';u.rate=.9;window.speechSynthesis.speak(u)}}
+function tm(){var S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return;if(LI){if(RC)RC.stop();return}RC=new S();RC.lang='es-AR';RC.interimResults=true;RC.onresult=function(e){document.getElementById('mi').value=Array.from(e.results).map(function(r){return r[0].transcript}).join('');us()};RC.onend=function(){LI=false;um();if(document.getElementById('mi').value.trim())setTimeout(sn,400)};RC.onerror=function(){LI=false;um()};RC.start();LI=true;um()}
+function um(){var b=document.getElementById('mb');b.className=LI?'mc on':'mc';b.textContent=LI?'⏹':'🎙️';document.getElementById('st').textContent=LI?'🔴 Escuchándote...':'Tu acompañante de vida'}
+function us(){var b=document.getElementById('sB'),v=document.getElementById('mi').value.trim();b.style.background=v?'linear-gradient(135deg,#d4c5a9,#c8a96e)':'rgba(255,255,255,.03)';b.style.opacity=v?'1':'.3'}
+window.onload=function(){var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}if('speechSynthesis' in window)window.speechSynthesis.getVoices()};
+</script>
+</body>
+</html>
