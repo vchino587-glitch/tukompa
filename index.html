@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TuKompa</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c8a96e;--bg:#070d1a;--bg2:#0c1528;--bg3:#111d35;--txt:#d4c5a9;--dim:#3a4a6a;--glow:rgba(200,169,110,.15)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px var(--glow)}50%{box-shadow:0 0 40px rgba(200,169,110,.3)}}
+@keyframes wave{0%,100%{height:4px}50%{height:18px}}
+@keyframes tp{0%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
+@keyframes lvlUp{0%{transform:scale(0);opacity:0}50%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes xpPop{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-30px)}}
+@keyframes shine{0%{left:-100%}100%{left:200%}}
+@keyframes badgePop{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.3) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:rgba(200,169,110,.1)}
+input::placeholder,textarea::placeholder{color:rgba(200,169,110,.2)!important}
+
+.sc{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(170deg,var(–bg),var(–bg2),var(–bg3))}
+.cd{max-width:400px;width:100%;animation:fadeUp .6s ease}
+.btn{display:block;width:100%;padding:16px;background:linear-gradient(135deg,#d4c5a9,var(–gold));border:none;border-radius:18px;color:#080810;font-size:15px;font-weight:600;cursor:pointer;font-family:‘Outfit’,sans-serif;letter-spacing:.5px;box-shadow:0 4px 20px rgba(200,169,110,.2)}
+.btn:active{transform:scale(.96)}
+.btn2{display:block;width:100%;padding:14px;background:rgba(255,255,255,.02);border:1px solid rgba(200,169,110,.1);border-radius:18px;color:#6a7a9a;font-size:13px;cursor:pointer;margin-top:10px}
+.inp{width:100%;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.08);border-radius:16px;color:var(–txt);font-size:17px;font-family:‘Outfit’,sans-serif;outline:none}
+.inp:focus{border-color:rgba(200,169,110,.25)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.opt{padding:16px 10px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.05);border-radius:16px;cursor:pointer;text-align:center;transition:all .25s}
+.opt:active{transform:scale(.95)}
+.opt.sel{background:rgba(200,169,110,.07);border-color:rgba(200,169,110,.2)}
+.opt-i{font-size:26px;margin-bottom:6px}
+.opt-n{font-size:12px;font-weight:500}
+
+/* CHAT */
+.ch{display:flex;flex-direction:column;height:100vh;height:100dvh;background:linear-gradient(170deg,var(–bg),var(–bg2),var(–bg3))}
+.chd{padding:10px 16px;border-bottom:1px solid rgba(200,169,110,.05);display:flex;align-items:center;gap:10px;flex-shrink:0;position:relative}
+.av{width:38px;height:38px;border-radius:50%;background:rgba(200,169,110,.08);border:1.5px solid rgba(200,169,110,.15);display:flex;align-items:center;justify-content:center;font-size:17px;animation:glow 4s ease-in-out infinite}
+.ch-info{flex:1}
+.ch-nm{color:var(–txt);font-size:14px;font-weight:600}
+.ch-st{color:var(–dim);font-size:9px;margin-top:1px}
+
+/* XP BAR IN HEADER */
+.xp-wrap{display:flex;align-items:center;gap:6px;margin-top:3px}
+.xp-bar{flex:1;height:3px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;max-width:100px}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(–gold),#e8d5a0);border-radius:3px;transition:width .8s ease;position:relative;overflow:hidden}
+.xp-fill::after{content:’’;position:absolute;top:0;width:30px;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:shine 2s ease-in-out infinite}
+.xp-lvl{font-size:8px;color:var(–gold);font-weight:600;letter-spacing:.5px}
+
+.ch-menu{width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;border:none;background:transparent;color:var(–dim);font-size:20px}
+
+/* DROPDOWN */
+.dd{position:absolute;top:54px;right:14px;background:#0f1b30;border:1px solid rgba(200,169,110,.1);border-radius:16px;padding:6px 0;min-width:230px;z-index:100;box-shadow:0 10px 40px rgba(0,0,0,.6);animation:fadeUp .2s}
+.dd-item{padding:11px 16px;font-size:13px;color:var(–txt);cursor:pointer;display:flex;align-items:center;gap:10px}
+.dd-item:active{background:rgba(200,169,110,.05)}
+.dd-sep{height:1px;background:rgba(255,255,255,.03);margin:3px 0}
+
+/* MESSAGES */
+.ms{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.mg{max-width:82%;animation:fadeUp .35s}
+.mu{align-self:flex-end}
+.ma{align-self:flex-start}
+.bb{padding:12px 16px;font-family:‘Cormorant Garamond’,serif;font-size:17px;line-height:1.8;font-weight:400}
+.mu .bb{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.12);border-radius:20px 20px 4px 20px}
+.ma .bb{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:20px 20px 20px 4px;color:#c4cdd9}
+.img-msg{max-width:200px;border-radius:14px;margin-bottom:6px}
+.dt{display:flex;gap:5px;padding:12px 16px;align-self:flex-start}
+.dt span{width:7px;height:7px;border-radius:50%;background:var(–dim)}
+.dt span:nth-child(1){animation:tp 1.2s ease infinite}
+.dt span:nth-child(2){animation:tp 1.2s ease .2s infinite}
+.dt span:nth-child(3){animation:tp 1.2s ease .4s infinite}
+
+/* XP POPUP */
+.xp-pop{position:fixed;top:60px;right:20px;background:rgba(200,169,110,.15);border:1px solid rgba(200,169,110,.25);border-radius:14px;padding:8px 16px;font-size:13px;color:var(–gold);font-weight:600;animation:xpPop 2s ease forwards;pointer-events:none;z-index:300}
+
+/* LEVEL UP OVERLAY */
+.lvl-up{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(7,13,26,.95);display:flex;align-items:center;justify-content:center;z-index:500;animation:fadeUp .3s}
+.lvl-card{text-align:center;animation:lvlUp .6s ease}
+.lvl-icon{font-size:60px;margin-bottom:12px}
+.lvl-title{font-family:‘Cormorant Garamond’,serif;font-size:28px;color:var(–gold);margin-bottom:6px}
+.lvl-sub{color:var(–dim);font-size:13px;margin-bottom:20px}
+
+/* BADGE NOTIFICATION */
+.badge-note{position:fixed;bottom:90px;left:16px;right:16px;background:linear-gradient(135deg,#111d35,#162040);border:1px solid rgba(200,169,110,.15);border-radius:18px;padding:16px;display:flex;align-items:center;gap:14px;z-index:400;animation:fadeUp .4s;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.badge-icon{font-size:36px;animation:badgePop .5s ease}
+.badge-info{flex:1}
+.badge-title{color:var(–gold);font-size:14px;font-weight:600}
+.badge-desc{color:var(–dim);font-size:11px;margin-top:2px}
+
+/* PROGRESS SCREEN */
+.prog{position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(170deg,var(–bg),var(–bg2),var(–bg3));z-index:200;overflow-y:auto;padding:20px;animation:fadeUp .3s}
+.prog-back{color:var(–dim);font-size:14px;cursor:pointer;margin-bottom:16px;display:inline-block}
+.prog-lvl{text-align:center;margin-bottom:24px}
+.prog-big-icon{font-size:50px;margin-bottom:8px}
+.prog-bar{width:100%;height:8px;background:rgba(255,255,255,.05);border-radius:8px;overflow:hidden;margin:10px 0}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(–gold),#e8d5a0);border-radius:8px;transition:width 1s ease}
+.badges-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.badge-card{text-align:center;padding:16px 8px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:16px}
+.badge-card.earned{background:rgba(200,169,110,.05);border-color:rgba(200,169,110,.15)}
+.badge-card.locked{opacity:.3}
+.badge-card-icon{font-size:30px;margin-bottom:6px}
+.badge-card-name{font-size:10px;color:var(–dim)}
+.badge-card.earned .badge-card-name{color:var(–txt)}
+
+/* INPUT */
+.ci{padding:10px 14px 22px;border-top:1px solid rgba(255,255,255,.03);display:flex;gap:7px;align-items:flex-end;flex-shrink:0}
+.ci textarea{flex:1;padding:12px 16px;background:rgba(255,255,255,.025);border:1px solid rgba(200,169,110,.06);border-radius:24px;color:var(–txt);font-size:16px;font-family:‘Cormorant Garamond’,serif;outline:none;resize:none;max-height:100px;line-height:1.5}
+.ib{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mic-b{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.1);color:var(–gold)}
+.mic-b.on{background:rgba(231,76,60,.12);border-color:rgba(231,76,60,.25);color:#E74C3C;animation:pulse 1s ease infinite}
+.img-b{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);color:var(–dim)}
+.snd-b{color:#080810}
+.mic-waves{display:flex;align-items:center;gap:3px;height:18px}
+.mic-waves span{width:3px;background:var(–gold);border-radius:2px;animation:wave .8s ease-in-out infinite}
+.mic-waves span:nth-child(1){animation-delay:0s}
+.mic-waves span:nth-child(2){animation-delay:.1s}
+.mic-waves span:nth-child(3){animation-delay:.2s}
+.mic-waves span:nth-child(4){animation-delay:.3s}
+.mic-waves span:nth-child(5){animation-delay:.15s}
+.ft{padding:3px 14px 8px;text-align:center;color:rgba(255,255,255,.04);font-size:7px;flex-shrink:0}
+.h{display:none}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:50}
+
+/* RECONFIG */
+.reconf{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;background:linear-gradient(170deg,var(–bg),var(–bg2),var(–bg3));overflow-y:auto;padding:24px;animation:fadeUp .3s}
+</style>
+
+</head>
+<body>
+
+<!-- WELCOME -->
+
+<div id="p0" class="sc"><div class="cd" style="text-align:center">
+<div style="font-size:56px;margin-bottom:12px;animation:float 3.5s ease-in-out infinite">🌿</div>
+<h1 style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;letter-spacing:6px;margin-bottom:6px">TuKompa</h1>
+<p style="color:var(--gold);font-size:11px;letter-spacing:4px;margin-bottom:22px;font-weight:300">TU ACOMPAÑANTE DE VIDA</p>
+<p style="color:#4a5a78;font-size:13px;line-height:1.9;max-width:300px;margin:0 auto 24px">Solo háblame. Yo te escucho, te conozco, te acompaño. Sin juicio. Sin prisa.</p>
+<button class="btn" onclick="go(1)">Empezar</button>
+<button class="btn2" onclick="tryLogin()">Ya tengo cuenta</button>
+</div></div>
+
+<!-- NAME -->
+
+<div id="p1" class="sc h"><div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">¿Cómo te llamas?</p>
+<input id="ni" class="inp" placeholder="Tu nombre...">
+<p style="color:#2a3548;font-size:11px;margin:10px 0 20px">Solo entre nosotros.</p>
+<button class="btn" onclick="var n=document.getElementById('ni').value.trim();if(n){UN=n;go(2)}">Siguiente</button>
+</div></div>
+
+<!-- COMPANION -->
+
+<div id="p2" class="sc h"><div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">¿Cómo querés que te acompañe?</p>
+<div class="opts" id="co">
+<div class="opt" onclick="sc(this,'Amiga')"><div class="opt-i">👩</div><div class="opt-n">Amiga</div></div>
+<div class="opt" onclick="sc(this,'Amigo')"><div class="opt-i">👨</div><div class="opt-n">Amigo</div></div>
+<div class="opt" onclick="sc(this,'Guía espiritual')"><div class="opt-i">🙏</div><div class="opt-n">Guía espiritual</div></div>
+<div class="opt" onclick="sc(this,'Coach')"><div class="opt-i">💪</div><div class="opt-n">Coach</div></div>
+<div class="opt" onclick="sc(this,'Terapeuta')"><div class="opt-i">🧠</div><div class="opt-n">Terapeuta</div></div>
+<div class="opt" onclick="sc(this,'Mentor')"><div class="opt-i">🌟</div><div class="opt-n">Mentor</div></div>
+<div class="opt" onclick="sc(this,'Confidente')"><div class="opt-i">🤫</div><div class="opt-n">Confidente</div></div>
+<div class="opt" onclick="sc(this,'Compañero')"><div class="opt-i">🤝</div><div class="opt-n">Compañero</div></div>
+</div>
+<button class="btn" onclick="if(CT)go(3)">Siguiente</button>
+</div></div>
+
+<!-- SPIRITUAL -->
+
+<div id="p3" class="sc h"><div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">¿Tenés un camino espiritual?</p>
+<div class="opts" id="so">
+<div class="opt" onclick="ssel(this,'cristiano')"><div class="opt-i">✝️</div><div class="opt-n">Cristiano</div></div>
+<div class="opt" onclick="ssel(this,'musulman')"><div class="opt-i">☪️</div><div class="opt-n">Islam</div></div>
+<div class="opt" onclick="ssel(this,'judio')"><div class="opt-i">✡️</div><div class="opt-n">Judaísmo</div></div>
+<div class="opt" onclick="ssel(this,'budista')"><div class="opt-i">☸️</div><div class="opt-n">Budismo</div></div>
+<div class="opt" onclick="ssel(this,'hindu')"><div class="opt-i">🕉️</div><div class="opt-n">Hinduismo</div></div>
+<div class="opt" onclick="ssel(this,'espiritual')"><div class="opt-i">✨</div><div class="opt-n">Espiritual</div></div>
+<div class="opt" onclick="ssel(this,'ancestral')"><div class="opt-i">🌍</div><div class="opt-n">Ancestral</div></div>
+<div class="opt" onclick="ssel(this,'ninguno')"><div class="opt-i">💚</div><div class="opt-n">Ninguno</div></div>
+</div>
+<button class="btn" onclick="sv();oc()">Comenzar</button>
+</div></div>
+
+<!-- CHAT -->
+
+<div id="cb" class="ch h">
+<div class="chd">
+<div class="av">🌿</div>
+<div class="ch-info">
+<div class="ch-nm" id="chNm">TuKompa</div>
+<div class="xp-wrap">
+<span class="xp-lvl" id="xpLvl">Nivel 1 · Semilla</span>
+<div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+</div>
+</div>
+<button class="ch-menu" onclick="toggleMenu()">⋮</button>
+<div class="dd h" id="ddMenu">
+<div class="dd-item" onclick="showProg()">⭐ Mi progreso</div>
+<div class="dd-sep"></div>
+<div class="dd-item" onclick="showReconf()">🔄 Cambiar compañero</div>
+<div class="dd-item" onclick="showReconf()">🙏 Cambiar camino espiritual</div>
+<div class="dd-sep"></div>
+<div class="dd-item" onclick="clearChat()">🗑️ Limpiar chat</div>
+<div class="dd-item" onclick="sendFB()">💌 Enviar sugerencia</div>
+<div class="dd-item" onclick="showAbout()">🌿 Acerca de TuKompa</div>
+</div>
+</div>
+<div id="menuOv" class="overlay h" onclick="closeMenu()"></div>
+
+<div class="ms" id="mg"></div>
+<div class="dt h" id="dots"><span></span><span></span><span></span></div>
+
+<div class="ci">
+<button class="ib mic-b" id="mb" onclick="tm()"><span id="micI">🎙️</span></button>
+<label class="ib img-b" for="imgUp" style="cursor:pointer">📷</label>
+<input type="file" id="imgUp" accept="image/*" style="display:none" onchange="handleImg(this)">
+<textarea id="mi" placeholder="Háblame..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sn()}" oninput="us()"></textarea>
+<button class="ib snd-b" id="sB" onclick="sn()" style="background:rgba(255,255,255,.03);opacity:.3">↑</button>
+</div>
+<div class="ft">TuKompa acompaña sin juzgar · No sustituye atención profesional</div>
+</div>
+
+<!-- PROGRESS SCREEN -->
+
+<div id="progSc" class="prog h">
+<div class="prog-back" onclick="document.getElementById('progSc').classList.add('h')">← Volver</div>
+<div class="prog-lvl">
+<div class="prog-big-icon" id="pIcon">🌱</div>
+<div style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold)" id="pLvlName">Semilla</div>
+<div style="font-size:13px;color:var(--dim);margin-top:4px" id="pLvlNum">Nivel 1</div>
+<div class="prog-bar"><div class="prog-bar-fill" id="pBarFill" style="width:0%"></div></div>
+<div style="font-size:11px;color:var(--dim)" id="pXpText">0 / 100 XP</div>
+</div>
+<div style="margin-bottom:12px">
+<div style="font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:4px">ESTADÍSTICAS</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:14px;padding:14px;text-align:center">
+<div style="font-size:22px;color:var(--gold);font-weight:600" id="sDays">0</div><div style="font-size:10px;color:var(--dim)">Días activo</div></div>
+<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:14px;padding:14px;text-align:center">
+<div style="font-size:22px;color:var(--gold);font-weight:600" id="sMsgs">0</div><div style="font-size:10px;color:var(--dim)">Mensajes</div></div>
+<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:14px;padding:14px;text-align:center">
+<div style="font-size:22px;color:var(--gold);font-weight:600" id="sStreak">0</div><div style="font-size:10px;color:var(--dim)">Racha días</div></div>
+<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:14px;padding:14px;text-align:center">
+<div style="font-size:22px;color:var(--gold);font-weight:600" id="sBadges">0</div><div style="font-size:10px;color:var(--dim)">Logros</div></div>
+</div>
+</div>
+<div style="font-size:12px;color:var(--gold);letter-spacing:2px;margin-bottom:8px">LOGROS</div>
+<div class="badges-grid" id="badgesGrid"></div>
+</div>
+
+<!-- RECONFIG -->
+
+<div id="reconfSc" class="reconf h">
+<div class="prog-back" onclick="document.getElementById('reconfSc').classList.add('h')">← Volver</div>
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:18px">Reconfigurá tu compañero</p>
+<div class="opts" id="rco">
+<div class="opt" onclick="rsc(this,'Amiga')"><div class="opt-i">👩</div><div class="opt-n">Amiga</div></div>
+<div class="opt" onclick="rsc(this,'Amigo')"><div class="opt-i">👨</div><div class="opt-n">Amigo</div></div>
+<div class="opt" onclick="rsc(this,'Guía espiritual')"><div class="opt-i">🙏</div><div class="opt-n">Guía espiritual</div></div>
+<div class="opt" onclick="rsc(this,'Coach')"><div class="opt-i">💪</div><div class="opt-n">Coach</div></div>
+<div class="opt" onclick="rsc(this,'Terapeuta')"><div class="opt-i">🧠</div><div class="opt-n">Terapeuta</div></div>
+<div class="opt" onclick="rsc(this,'Mentor')"><div class="opt-i">🌟</div><div class="opt-n">Mentor</div></div>
+<div class="opt" onclick="rsc(this,'Confidente')"><div class="opt-i">🤫</div><div class="opt-n">Confidente</div></div>
+<div class="opt" onclick="rsc(this,'Compañero')"><div class="opt-i">🤝</div><div class="opt-n">Compañero</div></div>
+</div>
+<p style="color:#4a5a78;font-size:12px;margin-bottom:12px">Camino espiritual:</p>
+<div class="opts" id="rso">
+<div class="opt" onclick="rss(this,'cristiano')"><div class="opt-i">✝️</div><div class="opt-n">Cristiano</div></div>
+<div class="opt" onclick="rss(this,'espiritual')"><div class="opt-i">✨</div><div class="opt-n">Espiritual</div></div>
+<div class="opt" onclick="rss(this,'budista')"><div class="opt-i">☸️</div><div class="opt-n">Budismo</div></div>
+<div class="opt" onclick="rss(this,'ancestral')"><div class="opt-i">🌍</div><div class="opt-n">Ancestral</div></div>
+<div class="opt" onclick="rss(this,'humanista')"><div class="opt-i">🧬</div><div class="opt-n">Humanista</div></div>
+<div class="opt" onclick="rss(this,'ninguno')"><div class="opt-i">💚</div><div class="opt-n">Ninguno</div></div>
+</div>
+<button class="btn" onclick="applyReconf()">Guardar cambios</button>
+</div>
+
+<script>
+var UN='',CT='',SP='ninguno',HS=[],RC=null,LI=false,IMG64=null,nCT='',nSP='';
+
+// ═══ XP & LEVELS SYSTEM ═══
+var LEVELS=[
+{n:'Semilla',icon:'🌱',xp:0},
+{n:'Brote',icon:'🌿',xp:100},
+{n:'Raíz',icon:'🌳',xp:300},
+{n:'Tronco',icon:'🪵',xp:600},
+{n:'Rama',icon:'🌴',xp:1000},
+{n:'Flor',icon:'🌸',xp:1600},
+{n:'Fruto',icon:'🍎',xp:2500},
+{n:'Bosque',icon:'🌲',xp:4000},
+{n:'Montaña',icon:'🏔️',xp:6000},
+{n:'Cielo',icon:'✨',xp:9000},
+{n:'Universo',icon:'🌌',xp:15000}
+];
+
+var BADGES=[
+{id:'first',icon:'💬',name:'Primera palabra',desc:'Enviaste tu primer mensaje',check:function(s){return s.msgs>=1}},
+{id:'week',icon:'🔥',name:'Semana de fuego',desc:'7 días seguidos hablando',check:function(s){return s.streak>=7}},
+{id:'month',icon:'🌙',name:'Luna llena',desc:'30 días seguidos',check:function(s){return s.streak>=30}},
+{id:'talk10',icon:'🗣️',name:'Conversador',desc:'10 mensajes en un día',check:function(s){return s.todayMsgs>=10}},
+{id:'talk50',icon:'📖',name:'Narrador',desc:'50 mensajes totales',check:function(s){return s.msgs>=50}},
+{id:'talk200',icon:'📚',name:'Bibliotecario',desc:'200 mensajes totales',check:function(s){return s.msgs>=200}},
+{id:'night',icon:'🦉',name:'Búho nocturno',desc:'Hablaste de madrugada',check:function(s){return s.nightTalk}},
+{id:'photo',icon:'📸',name:'Momento capturado',desc:'Enviaste tu primera imagen',check:function(s){return s.photos>=1}},
+{id:'voice',icon:'🎙️',name:'Voz propia',desc:'Usaste el micrófono',check:function(s){return s.voiceUsed}},
+{id:'reconf',icon:'🔄',name:'Evolución',desc:'Cambiaste de compañero',check:function(s){return s.reconfigs>=1}},
+{id:'deep',icon:'💎',name:'Profundidad',desc:'Conversación de +20 mensajes',check:function(s){return s.deepConvos>=1}},
+{id:'lvl5',icon:'🏆',name:'Veterano',desc:'Alcanzaste nivel 5',check:function(s){return s.level>=5}}
+];
+
+function loadXP(){
+var d=localStorage.getItem('tk_xp');
+if(d){try{return JSON.parse(d)}catch(e){}}
+return {xp:0,level:1,msgs:0,days:0,streak:0,lastDay:'',todayMsgs:0,nightTalk:false,photos:0,voiceUsed:false,reconfigs:0,deepConvos:0,badges:[]}
+}
+function saveXP(s){localStorage.setItem('tk_xp',JSON.stringify(s))}
+
+function addXP(amount,reason){
+var s=loadXP();
+var oldLvl=s.level;
+s.xp+=amount;
+// Calculate level
+for(var i=LEVELS.length-1;i>=0;i--){if(s.xp>=LEVELS[i].xp){s.level=i+1;break}}
+saveXP(s);
+updateXPUI(s);
+// Show XP popup
+showXPPop('+'+amount+' XP · '+reason);
+// Level up?
+if(s.level>oldLvl)setTimeout(function(){showLevelUp(s.level)},800);
+// Check badges
+setTimeout(function(){checkBadges(s)},1200);
+}
+
+function trackMsg(){
+var s=loadXP();
+var today=new Date().toDateString();
+s.msgs++;
+if(s.lastDay===today){s.todayMsgs++}else{
+if(s.lastDay===new Date(Date.now()-86400000).toDateString()){s.streak++}else if(s.lastDay!==today){s.streak=1}
+s.lastDay=today;s.todayMsgs=1;s.days++}
+if(new Date().getHours()>=1&&new Date().getHours()<=5)s.nightTalk=true;
+if(HS.length>20)s.deepConvos=Math.max(s.deepConvos||0,1);
+saveXP(s);
+}
+
+function showXPPop(text){
+var d=document.createElement('div');d.className='xp-pop';d.textContent=text;
+document.body.appendChild(d);setTimeout(function(){d.remove()},2200)}
+
+function showLevelUp(lvl){
+var l=LEVELS[lvl-1]||LEVELS[0];
+var d=document.createElement('div');d.className='lvl-up';
+d.innerHTML='<div class="lvl-card"><div class="lvl-icon">'+l.icon+'</div><div class="lvl-title">¡Nivel '+lvl+'!</div><div style="font-family:Cormorant Garamond,serif;font-size:24px;color:var(--txt);margin-bottom:8px">'+l.n+'</div><div class="lvl-sub">Tu crecimiento es real. Seguí así.</div><button class="btn" style="max-width:200px;margin:0 auto" onclick="this.parentElement.parentElement.remove()">Continuar</button></div>';
+document.body.appendChild(d)}
+
+function checkBadges(s){
+BADGES.forEach(function(b){
+if(s.badges.indexOf(b.id)===-1&&b.check(s)){
+s.badges.push(b.id);saveXP(s);
+showBadgeNote(b);addXP(25,'Logro: '+b.name)}})
+}
+
+function showBadgeNote(b){
+var d=document.createElement('div');d.className='badge-note';
+d.innerHTML='<div class="badge-icon">'+b.icon+'</div><div class="badge-info"><div class="badge-title">🏅 '+b.name+'</div><div class="badge-desc">'+b.desc+'</div></div>';
+document.body.appendChild(d);setTimeout(function(){d.remove()},4000)}
+
+function updateXPUI(s){
+if(!s)s=loadXP();
+var lvl=LEVELS[s.level-1]||LEVELS[0];
+var next=LEVELS[s.level]||LEVELS[LEVELS.length-1];
+var prog=next.xp>lvl.xp?((s.xp-lvl.xp)/(next.xp-lvl.xp))*100:100;
+document.getElementById('xpLvl').textContent='Nv.'+s.level+' · '+lvl.n;
+document.getElementById('xpFill').style.width=Math.min(prog,100)+'%';
+}
+
+function showProg(){
+closeMenu();var s=loadXP();var lvl=LEVELS[s.level-1]||LEVELS[0];var next=LEVELS[s.level]||LEVELS[LEVELS.length-1];
+var prog=next.xp>lvl.xp?((s.xp-lvl.xp)/(next.xp-lvl.xp))*100:100;
+document.getElementById('pIcon').textContent=lvl.icon;
+document.getElementById('pLvlName').textContent=lvl.n;
+document.getElementById('pLvlNum').textContent='Nivel '+s.level;
+document.getElementById('pBarFill').style.width=Math.min(prog,100)+'%';
+document.getElementById('pXpText').textContent=s.xp+' / '+next.xp+' XP';
+document.getElementById('sDays').textContent=s.days;
+document.getElementById('sMsgs').textContent=s.msgs;
+document.getElementById('sStreak').textContent=s.streak;
+document.getElementById('sBadges').textContent=s.badges.length;
+// Render badges
+var g=document.getElementById('badgesGrid');g.innerHTML='';
+BADGES.forEach(function(b){
+var earned=s.badges.indexOf(b.id)!==-1;
+g.innerHTML+='<div class="badge-card '+(earned?'earned':'locked')+'"><div class="badge-card-icon">'+b.icon+'</div><div class="badge-card-name">'+b.name+'</div></div>'});
+document.getElementById('progSc').classList.remove('h')}
+
+// ═══ NAVIGATION ═══
+function go(n){for(var i=0;i<4;i++)document.getElementById('p'+i).classList.add('h');document.getElementById('p'+n).classList.remove('h')}
+function sc(e,v){CT=v;document.querySelectorAll('#co .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function ssel(e,v){SP=v;document.querySelectorAll('#so .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function sv(){localStorage.setItem('tk_n',UN);localStorage.setItem('tk_c',CT);localStorage.setItem('tk_s',SP)}
+function tryLogin(){var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}}
+
+function oc(){
+for(var i=0;i<4;i++)document.getElementById('p'+i).classList.add('h');
+document.getElementById('cb').classList.remove('h');
+document.getElementById('chNm').textContent='TuKompa · '+CT;
+updateXPUI();
+var h=new Date().getHours();
+var g=h<6?UN+', es de madrugada. TuKompa está acá. ¿Qué te trajo a estas horas?'
+:h<12?'Buen día, '+UN+'. Soy TuKompa, tu '+CT.toLowerCase()+'. ¿Cómo estás?'
+:h<18?UN+', buenas tardes. Soy TuKompa, tu '+CT.toLowerCase()+'. Háblame.'
+:'Buenas noches, '+UN+'. Tu '+CT.toLowerCase()+' está acá para escucharte.';
+am('a',g);sp(g);
+// Daily check-in XP
+var s=loadXP();var today=new Date().toDateString();
+if(s.lastDay!==today)addXP(10,'Check-in diario')}
+
+function am(r,t,img){
+HS.push({role:r==='a'?'assistant':'user',content:t});
+var d=document.createElement('div');d.className='mg '+(r==='a'?'ma':'mu');
+var html='';if(img)html+='<img src="'+img+'" class="img-msg">';
+html+='<div class="bb">'+t+'</div>';d.innerHTML=html;
+document.getElementById('mg').appendChild(d);document.getElementById('mg').scrollTop=999999}
+
+// ═══ SEND MESSAGE ═══
+async function sn(){
+var ip=document.getElementById('mi'),t=ip.value.trim();
+if(!t&&!IMG64)return;
+var displayText=t||'📷 Imagen enviada';
+am('u',displayText,IMG64||null);ip.value='';us();
+trackMsg();addXP(5,'Mensaje enviado');
+document.getElementById('dots').classList.remove('h');
+document.getElementById('xpLvl').textContent='Pensando...';
+var body={message:t||'Describí lo que ves en esta imagen',userName:UN,companionType:CT,spiritualPath:SP,history:HS.slice(-12)};
+if(IMG64)body.image=IMG64;IMG64=null;
+document.getElementById('mi').placeholder='Háblame...';
+try{
+var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+var d=await r.json();
+document.getElementById('dots').classList.add('h');updateXPUI();
+if(d.response){am('a',d.response);sp(d.response);addXP(3,'Respuesta recibida')}else{am('a',fb(t))}
+}catch(e){document.getElementById('dots').classList.add('h');updateXPUI();am('a',fb(t))}}
+
+function handleImg(input){
+if(!input.files||!input.files[0])return;
+var s=loadXP();s.photos=(s.photos||0)+1;saveXP(s);
+var reader=new FileReader();
+reader.onload=function(e){IMG64=e.target.result;document.getElementById('mi').placeholder='📷 Imagen lista. Escribí algo o enviá...';us()};
+reader.readAsDataURL(input.files[0]);input.value=''}
+
+function fb(m){var l=(m||'').toLowerCase(),n=UN;
+if(['suicid','matarme','morir'].some(function(w){return l.includes(w)}))return n+', lo que sentís es real. No estás solo. AR 135, MX 800-911-2000, US 988. 💙';
+if(['triste','mal','dolor'].some(function(w){return l.includes(w)}))return'Eso pesa, '+n+'. Acá estoy sin prisa.';
+if(['feliz','bien','genial'].some(function(w){return l.includes(w)}))return'Eso se siente hasta acá, '+n+'. Guardalo.';
+var d=[n+', te escucho.',n+', estoy acá.','Seguí, '+n+'.'];return d[Math.floor(Math.random()*d.length)]}
+
+// ═══ VOICE ═══
+var VOICES={'Amiga':{rate:.95,pitch:1.2},'Amigo':{rate:1,pitch:.9},'Guía espiritual':{rate:.8,pitch:.85},'Coach':{rate:1.05,pitch:1},'Terapeuta':{rate:.85,pitch:.95},'Mentor':{rate:.9,pitch:.88},'Confidente':{rate:.92,pitch:1.1},'Compañero':{rate:1,pitch:1}};
+function sp(t){if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='es-AR';var vc=VOICES[CT]||{rate:.9,pitch:1};u.rate=vc.rate;u.pitch=vc.pitch;var v=window.speechSynthesis.getVoices().find(function(x){return x.lang.startsWith('es')});if(v)u.voice=v;window.speechSynthesis.speak(u)}
+
+// ═══ MIC ═══
+function tm(){
+var S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return;
+if(LI){if(RC)RC.stop();return}
+var s=loadXP();s.voiceUsed=true;saveXP(s);
+RC=new S();RC.lang='es-AR';RC.interimResults=true;
+RC.onresult=function(e){document.getElementById('mi').value=Array.from(e.results).map(function(r){return r[0].transcript}).join('');us()};
+RC.onend=function(){LI=false;um();if(document.getElementById('mi').value.trim())setTimeout(sn,500)};
+RC.onerror=function(){LI=false;um()};
+RC.start();LI=true;um()}
+function um(){var b=document.getElementById('mb');b.className=LI?'ib mic-b on':'ib mic-b';document.getElementById('micI').innerHTML=LI?'<span class="mic-waves"><span></span><span></span><span></span><span></span><span></span></span>':'🎙️';document.getElementById('xpLvl').textContent=LI?'🔴 Escuchándote...':updateXPUI()||''}
+function us(){var b=document.getElementById('sB'),v=document.getElementById('mi').value.trim()||IMG64;b.style.background=v?'linear-gradient(135deg,#d4c5a9,var(--gold))':'rgba(255,255,255,.03)';b.style.opacity=v?'1':'.3'}
+
+// ═══ MENU ═══
+function toggleMenu(){var m=document.getElementById('ddMenu'),o=document.getElementById('menuOv');if(m.classList.contains('h')){m.classList.remove('h');o.classList.remove('h')}else{closeMenu()}}
+function closeMenu(){document.getElementById('ddMenu').classList.add('h');document.getElementById('menuOv').classList.add('h')}
+function clearChat(){closeMenu();document.getElementById('mg').innerHTML='';HS=[];am('a','Chat limpio, '+UN+'. ¿Cómo estás?')}
+function sendFB(){closeMenu();window.location.href='mailto:kompaapp@gmail.com?subject=Sugerencia TuKompa&body=Hola, mi sugerencia es: '}
+function showAbout(){closeMenu();am('a','🌿 TuKompa v2.0 — Tu acompañante de vida con IA. Creado para acompañar a cada ser humano sin juicio, sin prisa. contacto: kompaapp@gmail.com')}
+
+// ═══ RECONFIG ═══
+function showReconf(){closeMenu();document.getElementById('reconfSc').classList.remove('h')}
+function rsc(e,v){nCT=v;document.querySelectorAll('#rco .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function rss(e,v){nSP=v;document.querySelectorAll('#rso .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function applyReconf(){
+CT=nCT||CT;SP=nSP||SP;sv();
+var s=loadXP();s.reconfigs=(s.reconfigs||0)+1;saveXP(s);
+document.getElementById('reconfSc').classList.add('h');
+document.getElementById('chNm').textContent='TuKompa · '+CT;
+am('a','Listo, '+UN+'. Ahora soy tu '+CT.toLowerCase()+'. ¿En qué te puedo acompañar?');
+sp('Ahora soy tu '+CT.toLowerCase()+', '+UN+'.');
+addXP(15,'Evolución de compañero')}
+
+// ═══ INIT ═══
+window.onload=function(){
+var n=localStorage.getItem('tk_n');
+if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}
+if('speechSynthesis' in window)window.speechSynthesis.getVoices()};
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+</script>
+
+</body>
+</html>
