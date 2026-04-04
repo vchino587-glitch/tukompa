@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>TuKompa</title>
+<link rel="manifest" href="/manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#c8a96e;--bg:#070d1a;--bg2:#0c1528;--bg3:#111d35;--txt:#d4c5a9;--dim:#3a4a6a;--glow:rgba(200,169,110,.15)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px var(--glow)}50%{box-shadow:0 0 40px rgba(200,169,110,.3)}}
+@keyframes wave{0%,100%{height:4px}50%{height:18px}}
+@keyframes tp{0%{opacity:.2}50%{opacity:1}100%{opacity:.2}}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:rgba(200,169,110,.1)}
+input::placeholder,textarea::placeholder{color:rgba(200,169,110,.2)!important}
+
+/* SCREENS */
+.sc{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(170deg,var(--bg),var(--bg2),var(--bg3))}
+.cd{max-width:400px;width:100%;animation:fadeUp .6s ease}
+
+/* BUTTONS */
+.btn{display:block;width:100%;padding:16px;background:linear-gradient(135deg,#d4c5a9,var(--gold));border:none;border-radius:18px;color:#080810;font-size:15px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;letter-spacing:.5px;transition:transform .15s,box-shadow .3s;box-shadow:0 4px 20px rgba(200,169,110,.2)}
+.btn:active{transform:scale(.96)}
+.btn2{display:block;width:100%;padding:14px;background:rgba(255,255,255,.02);border:1px solid rgba(200,169,110,.1);border-radius:18px;color:#6a7a9a;font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:10px}
+.inp{width:100%;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.08);border-radius:16px;color:var(--txt);font-size:17px;font-family:'Outfit',sans-serif;outline:none;transition:border .3s}
+.inp:focus{border-color:rgba(200,169,110,.25)}
+
+/* OPTIONS GRID */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.opt{padding:16px 10px;background:rgba(255,255,255,.015);border:1px solid rgba(255,255,255,.05);border-radius:16px;cursor:pointer;text-align:center;transition:all .25s}
+.opt:active{transform:scale(.95)}
+.opt.sel{background:rgba(200,169,110,.07);border-color:rgba(200,169,110,.2);box-shadow:0 0 15px rgba(200,169,110,.08)}
+.opt-i{font-size:26px;margin-bottom:6px}
+.opt-n{color:var(--txt);font-size:12px;font-weight:500;letter-spacing:.3px}
+
+/* CHAT */
+.ch{display:flex;flex-direction:column;height:100vh;height:100dvh;background:linear-gradient(170deg,var(--bg),var(--bg2),var(--bg3))}
+.chd{padding:14px 16px;border-bottom:1px solid rgba(200,169,110,.05);display:flex;align-items:center;gap:12px;flex-shrink:0;position:relative}
+.av{width:40px;height:40px;border-radius:50%;background:rgba(200,169,110,.08);border:1.5px solid rgba(200,169,110,.15);display:flex;align-items:center;justify-content:center;font-size:18px;animation:glow 4s ease-in-out infinite}
+.ch-info{flex:1}
+.ch-nm{color:var(--txt);font-size:15px;font-weight:600;letter-spacing:.3px}
+.ch-st{color:var(--dim);font-size:10px;margin-top:1px}
+.ch-menu{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;border:none;background:transparent;color:var(--dim);font-size:20px}
+
+/* DROPDOWN */
+.dd{position:absolute;top:56px;right:14px;background:#111d35;border:1px solid rgba(200,169,110,.1);border-radius:16px;padding:8px 0;min-width:220px;z-index:100;box-shadow:0 10px 40px rgba(0,0,0,.5);animation:fadeUp .2s}
+.dd-item{padding:12px 18px;font-size:13px;color:var(--txt);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .2s}
+.dd-item:active{background:rgba(200,169,110,.06)}
+.dd-sep{height:1px;background:rgba(255,255,255,.04);margin:4px 0}
+
+/* MESSAGES */
+.ms{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.mg{max-width:82%;animation:fadeUp .35s ease}
+.mu{align-self:flex-end}
+.ma{align-self:flex-start}
+.bb{padding:13px 18px;font-family:'Cormorant Garamond',serif;font-size:17px;line-height:1.8;font-weight:400}
+.mu .bb{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.12);border-radius:20px 20px 4px 20px;color:var(--txt)}
+.ma .bb{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:20px 20px 20px 4px;color:#c4cdd9}
+.img-msg{max-width:200px;border-radius:14px;margin-bottom:6px}
+
+/* TYPING DOTS */
+.dt{display:flex;gap:5px;padding:14px 18px;align-self:flex-start}
+.dt span{width:7px;height:7px;border-radius:50%;background:var(--dim)}
+.dt span:nth-child(1){animation:tp 1.2s ease infinite}
+.dt span:nth-child(2){animation:tp 1.2s ease .2s infinite}
+.dt span:nth-child(3){animation:tp 1.2s ease .4s infinite}
+
+/* INPUT BAR */
+.ci{padding:10px 14px 22px;border-top:1px solid rgba(255,255,255,.03);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.ci textarea{flex:1;padding:13px 16px;background:rgba(255,255,255,.025);border:1px solid rgba(200,169,110,.06);border-radius:24px;color:var(--txt);font-size:16px;font-family:'Cormorant Garamond',serif;outline:none;resize:none;max-height:100px;line-height:1.5}
+.ib{width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.mic-b{background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.1);color:var(--gold)}
+.mic-b.on{background:rgba(231,76,60,.12);border-color:rgba(231,76,60,.25);color:#E74C3C;animation:pulse 1s ease infinite}
+.img-b{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);color:var(--dim)}
+.snd-b{color:#080810}
+
+/* MIC WAVES */
+.mic-waves{display:flex;align-items:center;gap:3px;height:20px}
+.mic-waves span{width:3px;background:var(--gold);border-radius:2px;animation:wave .8s ease-in-out infinite}
+.mic-waves span:nth-child(1){animation-delay:0s;height:6px}
+.mic-waves span:nth-child(2){animation-delay:.1s;height:12px}
+.mic-waves span:nth-child(3){animation-delay:.2s;height:8px}
+.mic-waves span:nth-child(4){animation-delay:.3s;height:16px}
+.mic-waves span:nth-child(5){animation-delay:.15s;height:10px}
+
+.ft{padding:4px 14px 8px;text-align:center;color:rgba(255,255,255,.04);font-size:7px;flex-shrink:0}
+.h{display:none}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:50}
+</style>
+</head>
+<body>
+
+<!-- P0: WELCOME -->
+<div id="p0" class="sc"><div class="cd" style="text-align:center">
+<div style="font-size:56px;margin-bottom:12px;animation:float 3.5s ease-in-out infinite;filter:drop-shadow(0 0 20px rgba(200,169,110,.15))">🌿</div>
+<h1 style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;letter-spacing:6px;margin-bottom:6px">TuKompa</h1>
+<p style="color:var(--gold);font-size:11px;letter-spacing:4px;margin-bottom:22px;font-weight:300">TU ACOMPAÑANTE DE VIDA</p>
+<p style="color:#4a5a78;font-size:13px;line-height:1.9;max-width:300px;margin:0 auto 24px">Solo háblame. Yo te escucho, te conozco, te acompaño. Sin juicio. Sin prisa.</p>
+<button class="btn" onclick="go(1)">Empezar</button>
+<button class="btn2" onclick="tryLogin()">Ya tengo cuenta</button>
+<p style="color:rgba(255,255,255,.06);font-size:8px;margin-top:18px">Sin descarga · Privado · Funciona en cualquier celular</p>
+</div></div>
+
+<!-- P1: NAME -->
+<div id="p1" class="sc h"><div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">¿Cómo te llamas?</p>
+<input id="ni" class="inp" placeholder="Tu nombre..." autofocus>
+<p style="color:#2a3548;font-size:11px;margin:10px 0 20px">Solo entre nosotros. Nadie más lo ve.</p>
+<button class="btn" onclick="var n=document.getElementById('ni').value.trim();if(n){UN=n;go(2)}">Siguiente</button>
+</div></div>
+
+<!-- P2: COMPANION -->
+<div id="p2" class="sc h"><div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">¿Cómo querés que te acompañe?</p>
+<div class="opts" id="co">
+<div class="opt" onclick="sc(this,'Amiga')"><div class="opt-i">👩</div><div class="opt-n">Amiga</div></div>
+<div class="opt" onclick="sc(this,'Amigo')"><div class="opt-i">👨</div><div class="opt-n">Amigo</div></div>
+<div class="opt" onclick="sc(this,'Guía espiritual')"><div class="opt-i">🙏</div><div class="opt-n">Guía espiritual</div></div>
+<div class="opt" onclick="sc(this,'Coach')"><div class="opt-i">💪</div><div class="opt-n">Coach</div></div>
+<div class="opt" onclick="sc(this,'Terapeuta')"><div class="opt-i">🧠</div><div class="opt-n">Terapeuta</div></div>
+<div class="opt" onclick="sc(this,'Mentor')"><div class="opt-i">🌟</div><div class="opt-n">Mentor</div></div>
+<div class="opt" onclick="sc(this,'Confidente')"><div class="opt-i">🤫</div><div class="opt-n">Confidente</div></div>
+<div class="opt" onclick="sc(this,'Compañero')"><div class="opt-i">🤝</div><div class="opt-n">Compañero</div></div>
+</div>
+<button class="btn" onclick="if(CT)go(3)">Siguiente</button>
+</div></div>
+
+<!-- P3: SPIRITUAL -->
+<div id="p3" class="sc h"><div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">¿Tenés un camino espiritual?</p>
+<div class="opts" id="so">
+<div class="opt" onclick="ssel(this,'cristiano')"><div class="opt-i">✝️</div><div class="opt-n">Cristiano</div></div>
+<div class="opt" onclick="ssel(this,'musulman')"><div class="opt-i">☪️</div><div class="opt-n">Islam</div></div>
+<div class="opt" onclick="ssel(this,'judio')"><div class="opt-i">✡️</div><div class="opt-n">Judaísmo</div></div>
+<div class="opt" onclick="ssel(this,'budista')"><div class="opt-i">☸️</div><div class="opt-n">Budismo</div></div>
+<div class="opt" onclick="ssel(this,'hindu')"><div class="opt-i">🕉️</div><div class="opt-n">Hinduismo</div></div>
+<div class="opt" onclick="ssel(this,'espiritual')"><div class="opt-i">✨</div><div class="opt-n">Espiritual</div></div>
+<div class="opt" onclick="ssel(this,'ancestral')"><div class="opt-i">🌍</div><div class="opt-n">Ancestral</div></div>
+<div class="opt" onclick="ssel(this,'ninguno')"><div class="opt-i">💚</div><div class="opt-n">Ninguno</div></div>
+</div>
+<button class="btn" onclick="sv();oc()">Comenzar</button>
+</div></div>
+
+<!-- CHAT -->
+<div id="cb" class="ch h">
+<div class="chd">
+<div class="av" id="avIcon">🌿</div>
+<div class="ch-info"><div class="ch-nm" id="chNm">TuKompa</div><div class="ch-st" id="st">Tu acompañante de vida</div></div>
+<button class="ch-menu" onclick="toggleMenu()">⋮</button>
+<!-- DROPDOWN MENU -->
+<div class="dd h" id="ddMenu">
+<div class="dd-item" onclick="showReconfig()">🔄 Cambiar compañero</div>
+<div class="dd-item" onclick="showReconfig()">🙏 Cambiar camino espiritual</div>
+<div class="dd-sep"></div>
+<div class="dd-item" onclick="clearChat()">🗑️ Limpiar chat</div>
+<div class="dd-item" onclick="sendFeedback()">💌 Enviar sugerencia</div>
+<div class="dd-sep"></div>
+<div class="dd-item" onclick="showAbout()">🌿 Acerca de TuKompa</div>
+</div>
+</div>
+<div id="menuOverlay" class="overlay h" onclick="closeMenu()"></div>
+
+<div class="ms" id="mg"></div>
+<div class="dt h" id="dd2"><span></span><span></span><span></span></div>
+
+<div class="ci">
+<button class="ib mic-b" id="mb" onclick="tm()"><span id="micIcon">🎙️</span></button>
+<label class="ib img-b" for="imgUp" style="margin:0;cursor:pointer">📷</label>
+<input type="file" id="imgUp" accept="image/*" style="display:none" onchange="handleImg(this)">
+<textarea id="mi" placeholder="Háblame..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sn()}" oninput="us()"></textarea>
+<button class="ib snd-b" id="sB" onclick="sn()" style="background:rgba(255,255,255,.03);opacity:.3">↑</button>
+</div>
+<div class="ft">TuKompa acompaña sin juzgar · No sustituye atención profesional</div>
+</div>
+
+<!-- RECONFIG PANEL -->
+<div id="reconfig" class="sc h" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:200">
+<div class="cd">
+<p style="color:var(--gold);font-size:20px;font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:20px">Reconfigurá tu compañero</p>
+<p style="color:#4a5a78;font-size:12px;margin-bottom:16px">Elegí cómo querés que te acompañe ahora:</p>
+<div class="opts" id="rco">
+<div class="opt" onclick="rsc(this,'Amiga')"><div class="opt-i">👩</div><div class="opt-n">Amiga</div></div>
+<div class="opt" onclick="rsc(this,'Amigo')"><div class="opt-i">👨</div><div class="opt-n">Amigo</div></div>
+<div class="opt" onclick="rsc(this,'Guía espiritual')"><div class="opt-i">🙏</div><div class="opt-n">Guía espiritual</div></div>
+<div class="opt" onclick="rsc(this,'Coach')"><div class="opt-i">💪</div><div class="opt-n">Coach</div></div>
+<div class="opt" onclick="rsc(this,'Terapeuta')"><div class="opt-i">🧠</div><div class="opt-n">Terapeuta</div></div>
+<div class="opt" onclick="rsc(this,'Mentor')"><div class="opt-i">🌟</div><div class="opt-n">Mentor</div></div>
+<div class="opt" onclick="rsc(this,'Confidente')"><div class="opt-i">🤫</div><div class="opt-n">Confidente</div></div>
+<div class="opt" onclick="rsc(this,'Compañero')"><div class="opt-i">🤝</div><div class="opt-n">Compañero</div></div>
+</div>
+<p style="color:#4a5a78;font-size:12px;margin-bottom:16px">Camino espiritual:</p>
+<div class="opts" id="rso">
+<div class="opt" onclick="rss(this,'cristiano')"><div class="opt-i">✝️</div><div class="opt-n">Cristiano</div></div>
+<div class="opt" onclick="rss(this,'musulman')"><div class="opt-i">☪️</div><div class="opt-n">Islam</div></div>
+<div class="opt" onclick="rss(this,'budista')"><div class="opt-i">☸️</div><div class="opt-n">Budismo</div></div>
+<div class="opt" onclick="rss(this,'espiritual')"><div class="opt-i">✨</div><div class="opt-n">Espiritual</div></div>
+<div class="opt" onclick="rss(this,'ancestral')"><div class="opt-i">🌍</div><div class="opt-n">Ancestral</div></div>
+<div class="opt" onclick="rss(this,'ninguno')"><div class="opt-i">💚</div><div class="opt-n">Ninguno</div></div>
+</div>
+<button class="btn" onclick="applyReconfig()">Guardar cambios</button>
+<button class="btn2" onclick="document.getElementById('reconfig').classList.add('h')">Cancelar</button>
+</div>
+</div>
+
+<script>
+var UN='',CT='',SP='ninguno',HS=[],RC=null,LI=false,IMG64=null,newCT='',newSP='';
+
+/* VOICE CONFIG PER COMPANION */
+var VOICES={
+'Amiga':{rate:.95,pitch:1.2},
+'Amigo':{rate:1,pitch:.9},
+'Guía espiritual':{rate:.8,pitch:.85},
+'Coach':{rate:1.05,pitch:1},
+'Terapeuta':{rate:.85,pitch:.95},
+'Mentor':{rate:.9,pitch:.88},
+'Confidente':{rate:.92,pitch:1.1},
+'Compañero':{rate:1,pitch:1}
+};
+
+function go(n){for(var i=0;i<4;i++)document.getElementById('p'+i).classList.add('h');document.getElementById('p'+n).classList.remove('h')}
+function sc(e,v){CT=v;document.querySelectorAll('#co .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function ssel(e,v){SP=v;document.querySelectorAll('#so .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function sv(){localStorage.setItem('tk_n',UN);localStorage.setItem('tk_c',CT);localStorage.setItem('tk_s',SP)}
+function tryLogin(){var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}}
+
+function oc(){
+for(var i=0;i<4;i++)document.getElementById('p'+i).classList.add('h');
+document.getElementById('cb').classList.remove('h');
+document.getElementById('chNm').textContent='TuKompa · '+CT;
+var h=new Date().getHours();
+var g=h<6?UN+', es de madrugada. TuKompa, tu '+CT.toLowerCase()+', está acá. ¿Qué te trajo a estas horas?'
+:h<12?'Buen día, '+UN+'. Soy TuKompa, tu '+CT.toLowerCase()+'. ¿Cómo estás?'
+:h<18?UN+', buenas tardes. Soy TuKompa, tu '+CT.toLowerCase()+'. Háblame.'
+:'Buenas noches, '+UN+'. Soy TuKompa, tu '+CT.toLowerCase()+'. Estoy acá para escucharte.';
+am('a',g);sp(g)}
+
+function am(r,t,img){
+HS.push({role:r==='a'?'assistant':'user',content:t});
+var d=document.createElement('div');
+d.className='mg '+(r==='a'?'ma':'mu');
+var html='';
+if(img)html+='<img src="'+img+'" class="img-msg">';
+html+='<div class="bb">'+t+'</div>';
+d.innerHTML=html;
+document.getElementById('mg').appendChild(d);
+document.getElementById('mg').scrollTop=999999}
+
+/* SEND MESSAGE */
+async function sn(){
+var ip=document.getElementById('mi'),t=ip.value.trim();
+if(!t&&!IMG64)return;
+var displayText=t||'📷 Imagen enviada';
+am('u',displayText,IMG64?IMG64:null);
+ip.value='';us();
+document.getElementById('dd2').classList.remove('h');
+document.getElementById('st').textContent='Pensando...';
+
+var body={message:t||'Describí lo que ves en esta imagen',userName:UN,companionType:CT,spiritualPath:SP,history:HS.slice(-10)};
+if(IMG64)body.image=IMG64;
+IMG64=null;
+
+try{
+var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+var d=await r.json();
+document.getElementById('dd2').classList.add('h');
+document.getElementById('st').textContent='Tu acompañante de vida';
+if(d.response){am('a',d.response);sp(d.response)}else{am('a',fb(t))}
+}catch(e){document.getElementById('dd2').classList.add('h');document.getElementById('st').textContent='Tu acompañante de vida';am('a',fb(t))}}
+
+/* IMAGE UPLOAD */
+function handleImg(input){
+if(!input.files||!input.files[0])return;
+var file=input.files[0];
+var reader=new FileReader();
+reader.onload=function(e){
+IMG64=e.target.result;
+document.getElementById('mi').value='';
+document.getElementById('mi').placeholder='📷 Imagen lista. Escribí algo o enviá...';
+us();
+};
+reader.readAsDataURL(file);
+input.value='';
+}
+
+/* FALLBACK */
+function fb(m){var l=(m||'').toLowerCase(),n=UN;
+if(['suicid','matarme','morir'].some(function(w){return l.includes(w)}))return n+', lo que sentís es real. No estás solo. AR 135, MX 800-911-2000, US 988. 💙';
+if(['triste','mal','dolor'].some(function(w){return l.includes(w)}))return'Eso pesa, '+n+'. Acá estoy.';
+if(['feliz','bien','genial'].some(function(w){return l.includes(w)}))return'Eso se siente hasta acá, '+n+'.';
+var d=[n+', te escucho. Seguí.',n+', estoy acá. Sin prisa.','Seguí, '+n+'. Lo que decís importa.'];
+return d[Math.floor(Math.random()*d.length)]}
+
+/* VOICE - DIFFERENT PER COMPANION */
+function sp(t){
+if(!('speechSynthesis' in window))return;
+window.speechSynthesis.cancel();
+var u=new SpeechSynthesisUtterance(t);
+u.lang='es-AR';
+var vc=VOICES[CT]||{rate:.9,pitch:1};
+u.rate=vc.rate;u.pitch=vc.pitch;
+var voices=window.speechSynthesis.getVoices();
+var fem=['Amiga','Confidente','Terapeuta'];
+if(fem.includes(CT)){var fv=voices.find(function(v){return v.lang.startsWith('es')&&v.name.toLowerCase().includes('female')});if(fv)u.voice=fv;}
+var esV=voices.find(function(v){return v.lang.startsWith('es')});
+if(!u.voice&&esV)u.voice=esV;
+window.speechSynthesis.speak(u)}
+
+/* MICROPHONE */
+function tm(){
+var S=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!S)return;
+if(LI){if(RC)RC.stop();return}
+RC=new S();RC.lang='es-AR';RC.interimResults=true;
+RC.onresult=function(e){document.getElementById('mi').value=Array.from(e.results).map(function(r){return r[0].transcript}).join('');us()};
+RC.onend=function(){LI=false;um();if(document.getElementById('mi').value.trim())setTimeout(sn,500)};
+RC.onerror=function(){LI=false;um()};
+RC.start();LI=true;um()}
+
+function um(){
+var b=document.getElementById('mb');
+b.className=LI?'ib mic-b on':'ib mic-b';
+document.getElementById('micIcon').innerHTML=LI?'<span class="mic-waves"><span></span><span></span><span></span><span></span><span></span></span>':'🎙️';
+document.getElementById('st').textContent=LI?'🔴 Escuchándote...':'Tu acompañante de vida'}
+
+function us(){var b=document.getElementById('sB'),v=document.getElementById('mi').value.trim()||IMG64;b.style.background=v?'linear-gradient(135deg,#d4c5a9,var(--gold))':'rgba(255,255,255,.03)';b.style.opacity=v?'1':'.3'}
+
+/* MENU */
+function toggleMenu(){var m=document.getElementById('ddMenu'),o=document.getElementById('menuOverlay');if(m.classList.contains('h')){m.classList.remove('h');o.classList.remove('h')}else{closeMenu()}}
+function closeMenu(){document.getElementById('ddMenu').classList.add('h');document.getElementById('menuOverlay').classList.add('h')}
+
+/* RECONFIG */
+function showReconfig(){closeMenu();newCT=CT;newSP=SP;document.getElementById('reconfig').classList.remove('h')}
+function rsc(e,v){newCT=v;document.querySelectorAll('#rco .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function rss(e,v){newSP=v;document.querySelectorAll('#rso .opt').forEach(function(o){o.classList.remove('sel')});e.classList.add('sel')}
+function applyReconfig(){
+CT=newCT||CT;SP=newSP||SP;sv();
+document.getElementById('reconfig').classList.add('h');
+document.getElementById('chNm').textContent='TuKompa · '+CT;
+am('a','Listo, '+UN+'. Ahora soy tu '+CT.toLowerCase()+'. ¿En qué te puedo acompañar?');
+sp('Listo, '+UN+'. Ahora soy tu '+CT.toLowerCase()+'.')}
+
+function clearChat(){closeMenu();document.getElementById('mg').innerHTML='';HS=[];am('a','Chat limpio, '+UN+'. Empecemos de nuevo. ¿Cómo estás?')}
+
+function sendFeedback(){closeMenu();window.location.href='mailto:kompaapp@gmail.com?subject=Sugerencia TuKompa&body=Hola, mi sugerencia es: '}
+
+function showAbout(){closeMenu();am('a','🌿 TuKompa — Tu acompañante de vida con IA. Versión 1.0. Creado con amor para acompañar a cada ser humano sin juicio, sin prisa, sin final. contacto: kompaapp@gmail.com')}
+
+/* INIT */
+window.onload=function(){
+var n=localStorage.getItem('tk_n');
+if(n){UN=n;CT=localStorage.getItem('tk_c')||'acompañante';SP=localStorage.getItem('tk_s')||'ninguno';oc()}
+if('speechSynthesis' in window)window.speechSynthesis.getVoices()};
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}
+</script>
+</body>
+</html>
