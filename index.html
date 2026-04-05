@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0d1410">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>TuKompa</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1410;
+      --surface: #141c18;
+      --surface2: #1a2420;
+      --border: #2a3830;
+      --accent: #7ab896;
+      --accent-bright: #a8d5b5;
+      --text: #e8f0eb;
+      --text-muted: #7a9485;
+      --user-bubble: #1e3028;
+      --ai-bubble: #141c18;
+      --recording: #e74c3c;
+      --gold: #c9a84c;
+      --font-display: 'Cormorant Garamond', serif;
+      --font-body: 'Outfit', sans-serif;
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+    [data-theme="light"] {
+      --bg: #f0f4f1;
+      --surface: #ffffff;
+      --surface2: #e8ede9;
+      --border: #ccd8cc;
+      --accent: #3d8a5e;
+      --accent-bright: #2d6b4a;
+      --text: #1a2420;
+      --text-muted: #5a7565;
+      --user-bubble: #cce8d4;
+      --ai-bubble: #ffffff;
+    }
+
+```
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%; width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+/* ===== SCREENS ===== */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 32px 24px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+  overflow-y: auto;
+}
+.screen.active { opacity: 1; pointer-events: all; }
+
+/* ===== WELCOME ===== */
+.logo-area { text-align: center; margin-bottom: 40px; }
+.logo-leaf {
+  font-size: 60px;
+  animation: breathe 4s ease-in-out infinite;
+  display: block;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.logo-title {
+  font-family: var(--font-display);
+  font-size: 44px; font-weight: 300;
+  letter-spacing: 3px; color: var(--text);
+  margin-top: 8px;
+}
+.logo-title span { color: var(--accent); }
+.logo-sub {
+  font-size: 11px; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-top: 6px;
+}
+.tagline {
+  font-family: var(--font-display); font-style: italic;
+  font-size: 19px; color: var(--text-muted);
+  text-align: center; margin-bottom: 40px;
+  line-height: 1.9;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  width: 100%; max-width: 320px;
+  padding: 16px 24px;
+  border: none; border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 16px; font-weight: 400;
+  cursor: pointer; transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #0a1210; font-weight: 500; }
+.btn-primary:hover { background: var(--accent-bright); }
+.btn-primary:disabled { opacity: 0.4; cursor: default; transform: none; }
+.btn-secondary {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-ghost { background: transparent; color: var(--text-muted); font-size: 14px; }
+.btn-stack { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+
+/* ===== INPUTS ===== */
+.input-field {
+  width: 100%; max-width: 320px;
+  padding: 16px 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--font-body); font-size: 17px;
+  outline: none; transition: border-color 0.2s;
+  margin-bottom: 16px;
+}
+.input-field:focus { border-color: var(--accent); }
+.input-field::placeholder { color: var(--text-muted); }
+
+.screen-title {
+  font-family: var(--font-display);
+  font-size: 30px; font-weight: 300;
+  text-align: center; margin-bottom: 8px;
+}
+.screen-subtitle {
+  color: var(--text-muted); font-size: 14px;
+  text-align: center; margin-bottom: 28px;
+}
+
+/* ===== GRID OPTIONS ===== */
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; width: 100%; max-width: 380px;
+  margin-bottom: 24px;
+}
+.option-card {
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 18px 12px;
+  text-align: center; cursor: pointer; transition: all 0.2s;
+}
+.option-card:active { transform: scale(0.96); }
+.option-card.selected { border-color: var(--accent); background: var(--user-bubble); }
+.option-card .option-icon { font-size: 26px; margin-bottom: 6px; }
+.option-card .option-name { font-size: 13px; font-weight: 500; }
+
+/* ===== CHAT ===== */
+#chatBox {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+}
+#chatBox.active { opacity: 1; pointer-events: all; }
+
+/* Header */
+.chat-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-header-left { display: flex; align-items: center; gap: 10px; }
+.companion-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--user-bubble);
+  border: 1.5px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.companion-info .c-name { font-size: 15px; font-weight: 500; }
+.companion-info .c-status { font-size: 12px; color: var(--accent); }
+.header-actions { display: flex; gap: 6px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: none; background: var(--surface2);
+  color: var(--text-muted); font-size: 16px;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.icon-btn:active { transform: scale(0.9); }
+.icon-btn.on { background: var(--accent); color: #0d1410; }
+
+/* XP bar */
+.xp-bar { height: 3px; background: var(--border); flex-shrink: 0; }
+.xp-fill { height: 100%; background: var(--accent); transition: width 0.6s ease; }
+
+/* Messages */
+#messages {
+  flex: 1; overflow-y: auto;
+  padding: 20px 16px;
+  display: flex; flex-direction: column;
+  gap: 16px; scroll-behavior: smooth;
+}
+#messages::-webkit-scrollbar { width: 3px; }
+#messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.msg { display: flex; gap: 10px; animation: msgIn 0.3s ease; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0; align-self: flex-end;
+}
+.msg-content { max-width: 78%; }
+.msg.user .msg-content { display: flex; flex-direction: column; align-items: flex-end; }
+
+.bubble {
+  padding: 14px 18px; border-radius: 20px;
+  font-size: 16px; line-height: 1.65; color: var(--text);
+  word-break: break-word;
+}
+.msg.ai .bubble {
+  background: var(--ai-bubble);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 6px;
+}
+.msg.user .bubble {
+  background: var(--user-bubble);
+  border-bottom-right-radius: 6px;
+}
+.msg-time { font-size: 11px; color: var(--text-muted); margin-top: 4px; padding: 0 4px; }
+
+/* Typing */
+.typing-dots { display: flex; gap: 5px; align-items: center; padding: 2px 0; }
+.typing-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-muted);
+  animation: dot 1.2s ease infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot {
+  0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+  30% { transform: scale(1.3); opacity: 1; }
+}
+
+/* Input area */
+.chat-input-area {
+  padding: 10px 14px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.rec-indicator {
+  display: none; align-items: center; gap: 8px;
+  padding: 6px 14px; margin-bottom: 8px;
+  background: rgba(231,76,60,0.1); border-radius: 20px;
+  font-size: 13px; color: var(--recording);
+}
+.rec-indicator.on { display: flex; }
+.rec-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--recording);
+  animation: blink 1s ease infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; } 50% { opacity: 0.2; }
+}
+
+.input-row {
+  display: flex; align-items: flex-end; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 26px; padding: 6px 6px 6px 16px;
+  transition: border-color 0.2s;
+}
+.input-row:focus-within { border-color: var(--accent); }
+
+#msgInput {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-family: var(--font-body);
+  font-size: 16px; line-height: 1.5;
+  resize: none; max-height: 120px; padding: 4px 0;
+}
+#msgInput::placeholder { color: var(--text-muted); }
+
+.mic-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: none; background: var(--surface);
+  color: var(--text-muted); font-size: 20px;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.mic-btn:active { transform: scale(0.9); }
+.mic-btn.recording {
+  background: var(--recording); color: white;
+  animation: pulse-mic 1.5s ease infinite;
+}
+@keyframes pulse-mic {
+  0% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+  70% { box-shadow: 0 0 0 14px rgba(231,76,60,0); }
+  100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
+}
+
+.send-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: none; background: var(--accent);
+  color: #0a1210; font-size: 18px; font-weight: bold;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.send-btn:active { transform: scale(0.9); }
+
+/* ===== MUSIC PANEL ===== */
+.music-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+}
+.music-panel.open { transform: translateY(0); }
+.music-handle {
+  width: 40px; height: 4px; background: var(--border);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.music-label {
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.mood-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; margin-bottom: 16px;
+}
+.mood-btn {
+  padding: 10px 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px; background: none;
+  color: var(--text-muted); font-family: var(--font-body);
+  font-size: 12px; cursor: pointer;
+  text-align: center; transition: all 0.2s;
+}
+.mood-btn .m-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.mood-btn.active { border-color: var(--accent); color: var(--accent); background: var(--user-bubble); }
+.music-controls { display: flex; align-items: center; gap: 12px; }
+.play-btn {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: none; background: var(--accent);
+  color: #0a1210; font-size: 18px;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.2s;
+}
+.play-btn:active { transform: scale(0.9); }
+.vol-slider {
+  flex: 1; -webkit-appearance: none;
+  height: 4px; border-radius: 2px;
+  background: var(--border); outline: none;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+}
+
+/* ===== PANELS ===== */
+.panel {
+  position: fixed; inset: 0;
+  background: var(--bg); z-index: 200;
+  display: flex; flex-direction: column;
+  padding: 24px;
+  padding-top: max(24px, env(safe-area-inset-top));
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s; overflow-y: auto;
+}
+.panel.open { opacity: 1; pointer-events: all; }
+.panel-hdr {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 32px;
+}
+.panel-title { font-family: var(--font-display); font-size: 28px; font-weight: 300; }
+.close-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--border); background: none;
+  color: var(--text-muted); font-size: 18px;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+}
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0; border-bottom: 1px solid var(--border);
+}
+.stat-label { color: var(--text-muted); font-size: 14px; }
+.stat-val { font-size: 20px; font-family: var(--font-display); }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+```
+
+  </style>
+</head>
+<body>
+
+<!-- ===== P0: BIENVENIDA ===== -->
+
+<div id="p0" class="screen active">
+  <div class="logo-area">
+    <span class="logo-leaf">🌿</span>
+    <div class="logo-title">Tu<span>Kompa</span></div>
+    <div class="logo-sub">Tu acompañante de vida</div>
+  </div>
+  <p class="tagline">Solo háblame.<br>Yo te escucho, te conozco,<br>te acompaño.<br><small style="font-size:14px;letter-spacing:1px">Sin juicio. Sin prisa.</small></p>
+  <div class="btn-stack">
+    <button class="btn btn-primary" onclick="showScreen('p1')">Empezar</button>
+    <button class="btn btn-secondary" onclick="loginExisting()">Ya tengo cuenta</button>
+    <button class="btn btn-ghost" onclick="toggleTheme()">🌙 Cambiar tema</button>
+  </div>
+</div>
+
+<!-- ===== P1: NOMBRE ===== -->
+
+<div id="p1" class="screen">
+  <div class="screen-title">¿Cómo te llamo?</div>
+  <p class="screen-subtitle">Tu nombre es solo tuyo</p>
+  <input id="nameInput" class="input-field" type="text" placeholder="Tu nombre..." maxlength="30"
+    onkeydown="if(event.key==='Enter') saveName()" />
+  <div class="btn-stack">
+    <button class="btn btn-primary" onclick="saveName()">Continuar →</button>
+    <button class="btn btn-ghost" onclick="showScreen('p0')">← Volver</button>
+  </div>
+</div>
+
+<!-- ===== P2: COMPANION ===== -->
+
+<div id="p2" class="screen">
+  <div class="screen-title">¿Quién soy para vos?</div>
+  <p class="screen-subtitle">Podés cambiarlo cuando quieras</p>
+  <div class="options-grid">
+    <div class="option-card" onclick="pick(this,'companion','Amigo empático')">
+      <div class="option-icon">🤝</div><div class="option-name">Amigo empático</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Guía espiritual')">
+      <div class="option-icon">✨</div><div class="option-name">Guía espiritual</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Coach de vida')">
+      <div class="option-icon">🎯</div><div class="option-name">Coach de vida</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Consejero tranquilo')">
+      <div class="option-icon">🌊</div><div class="option-name">Consejero tranquilo</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Motivador')">
+      <div class="option-icon">🔥</div><div class="option-name">Motivador</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Mentor sabio')">
+      <div class="option-icon">🦉</div><div class="option-name">Mentor sabio</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Compañero lúdico')">
+      <div class="option-icon">🎨</div><div class="option-name">Compañero lúdico</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'companion','Guardián silencioso')">
+      <div class="option-icon">🌙</div><div class="option-name">Guardián silencioso</div>
+    </div>
+  </div>
+  <div class="btn-stack">
+    <button class="btn btn-primary" id="p2btn" onclick="goP3()" disabled>Continuar →</button>
+    <button class="btn btn-ghost" onclick="showScreen('p1')">← Volver</button>
+  </div>
+</div>
+
+<!-- ===== P3: CAMINO ESPIRITUAL ===== -->
+
+<div id="p3" class="screen">
+  <div class="screen-title">Tu camino</div>
+  <p class="screen-subtitle">¿Desde dónde transitás la vida?</p>
+  <div class="options-grid">
+    <div class="option-card" onclick="pick(this,'spiritual','Sin religión específica')">
+      <div class="option-icon">🌿</div><div class="option-name">Sin religión</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Espiritualidad libre')">
+      <div class="option-icon">🌌</div><div class="option-name">Espíritu libre</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Cristiano/a')">
+      <div class="option-icon">✝️</div><div class="option-name">Cristiano/a</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Budismo')">
+      <div class="option-icon">☸️</div><div class="option-name">Budismo</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Filosofía estoica')">
+      <div class="option-icon">🏛️</div><div class="option-name">Estoicismo</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Naturaleza y tierra')">
+      <div class="option-icon">🌍</div><div class="option-name">Naturaleza</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Islam')">
+      <div class="option-icon">☪️</div><div class="option-name">Islam</div>
+    </div>
+    <div class="option-card" onclick="pick(this,'spiritual','Mi propio camino')">
+      <div class="option-icon">⭐</div><div class="option-name">Mi propio camino</div>
+    </div>
+  </div>
+  <div class="btn-stack">
+    <button class="btn btn-primary" id="p3btn" onclick="startChat()" disabled>Empezar a hablar →</button>
+    <button class="btn btn-ghost" onclick="showScreen('p2')">← Volver</button>
+  </div>
+</div>
+
+<!-- ===== CHAT ===== -->
+
+<div id="chatBox">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="companion-avatar" id="cAvatar">🌿</div>
+      <div class="companion-info">
+        <div class="c-name" id="cName">Kompa</div>
+        <div class="c-status">● Presente</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="musicBtn" onclick="toggleMusicPanel()" title="Música ambiental">🎵</button>
+      <button class="icon-btn" onclick="openPanel('panelProgreso')" title="Progreso">✨</button>
+      <button class="icon-btn" onclick="openPanel('panelConfig')" title="Configuración">⚙️</button>
+    </div>
+  </div>
+  <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+
+  <div id="messages"></div>
+
+  <div class="chat-input-area">
+    <div class="rec-indicator" id="recInd">
+      <div class="rec-dot"></div>
+      Escuchando... tocá 🎤 para detener
+    </div>
+    <div class="input-row">
+      <textarea id="msgInput" rows="1" placeholder="Escribí o hablá..."
+        oninput="autoGrow(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()" title="Micrófono">🎤</button>
+      <button class="send-btn" onclick="sendMsg()" title="Enviar">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MUSIC PANEL ===== -->
+
+<div class="music-panel" id="musicPanel">
+  <div class="music-handle"></div>
+  <div class="music-label">🎵 Ambiente sonoro</div>
+  <div class="mood-grid">
+    <button class="mood-btn" onclick="pickMood('Calma',this)">
+      <span class="m-icon">🌊</span>Calma
+    </button>
+    <button class="mood-btn" onclick="pickMood('Reflexión',this)">
+      <span class="m-icon">🌙</span>Reflexión
+    </button>
+    <button class="mood-btn" onclick="pickMood('Energía',this)">
+      <span class="m-icon">⚡</span>Energía
+    </button>
+    <button class="mood-btn" onclick="pickMood('Sanación',this)">
+      <span class="m-icon">💚</span>Sanación
+    </button>
+  </div>
+  <div class="music-controls">
+    <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+    <span style="font-size:16px">🔈</span>
+    <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="30"
+      oninput="Music.setVolume(this.value)">
+    <span style="font-size:16px">🔊</span>
+  </div>
+</div>
+
+<!-- ===== PANEL PROGRESO ===== -->
+
+<div class="panel" id="panelProgreso">
+  <div class="panel-hdr">
+    <div class="panel-title">Tu progreso 🌿</div>
+    <button class="close-btn" onclick="closePanel('panelProgreso')">✕</button>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Conversaciones</span>
+    <span class="stat-val" id="statConvs">0</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Mensajes enviados</span>
+    <span class="stat-val" id="statMsgs">0</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Energía acumulada</span>
+    <span class="stat-val" id="statXP">0 XP</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">Compañero elegido</span>
+    <span class="stat-val" id="statComp">—</span>
+  </div>
+  <p style="color:var(--text-muted);margin-top:32px;font-size:14px;text-align:center">
+    Cada conversación es un paso. Seguí. 🌿
+  </p>
+</div>
+
+<!-- ===== PANEL CONFIG ===== -->
+
+<div class="panel" id="panelConfig">
+  <div class="panel-hdr">
+    <div class="panel-title">Configuración</div>
+    <button class="close-btn" onclick="closePanel('panelConfig')">✕</button>
+  </div>
+  <div class="btn-stack" style="max-width:100%">
+    <button class="btn btn-secondary" onclick="toggleTheme()">🌙 Tema claro / oscuro</button>
+    <button class="btn btn-secondary" onclick="changeFont(2)">A+ Texto más grande</button>
+    <button class="btn btn-secondary" onclick="changeFont(-2)">A− Texto más pequeño</button>
+    <button class="btn btn-secondary" onclick="clearChat()">🗑️ Limpiar conversación</button>
+    <button class="btn btn-secondary" onclick="resetAll()">↩️ Volver al inicio</button>
+  </div>
+  <div style="margin-top:32px;padding:16px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)">
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:8px">Tu nombre</p>
+    <p style="font-size:16px" id="cfgName">—</p>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  name: '', companion: '', spiritual: '',
+  history: [], xp: 0, msgs: 0, convs: 0,
+  fontSize: 17, theme: 'dark', mood: null
+};
+
+// Load from localStorage
+try {
+  const saved = JSON.parse(localStorage.getItem('tk_v2') || '{}');
+  Object.assign(S, saved);
+} catch(e) {}
+
+// Apply saved settings
+document.documentElement.setAttribute('data-theme', S.theme || 'dark');
+document.documentElement.style.fontSize = (S.fontSize || 17) + 'px';
+
+function save() { localStorage.setItem('tk_v2', JSON.stringify(S)); }
+
+// ============================================================
+// SCREENS
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.getElementById('chatBox').classList.remove('active');
+}
+
+function loginExisting() {
+  if (S.name && S.companion) openChat();
+  else showScreen('p1');
+}
+
+function saveName() {
+  const v = document.getElementById('nameInput').value.trim();
+  if (!v) return document.getElementById('nameInput').focus();
+  S.name = v; save(); showScreen('p2');
+}
+
+// Option picking
+let picks = { companion: null, spiritual: null };
+function pick(el, type, val) {
+  el.closest('.options-grid').querySelectorAll('.option-card')
+    .forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  picks[type] = val;
+  if (type === 'companion') document.getElementById('p2btn').disabled = false;
+  if (type === 'spiritual') document.getElementById('p3btn').disabled = false;
+}
+
+function goP3() {
+  if (!picks.companion) return;
+  S.companion = picks.companion; save(); showScreen('p3');
+}
+
+function startChat() {
+  if (!picks.spiritual) return;
+  S.spiritual = picks.spiritual; save(); openChat();
+}
+
+// ============================================================
+// CHAT OPEN
+// ============================================================
+const ICONS = {
+  'Amigo empático':'🤝','Guía espiritual':'✨','Coach de vida':'🎯',
+  'Consejero tranquilo':'🌊','Motivador':'🔥','Mentor sabio':'🦉',
+  'Compañero lúdico':'🎨','Guardián silencioso':'🌙'
+};
+
+function openChat() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('chatBox').classList.add('active');
+
+  // Update header
+  document.getElementById('cAvatar').textContent = ICONS[S.companion] || '🌿';
+  document.getElementById('cName').textContent = S.companion || 'Kompa';
+  document.getElementById('cfgName').textContent = S.name || '—';
+
+  updateStats();
+
+  if (S.history.length === 0) {
+    S.convs++;  save();
+    setTimeout(() => addMsg('ai',
+      `Hola ${S.name} 🌿 Estoy acá, presente. ¿Cómo estás hoy?`), 600);
+  } else {
+    renderAll();
+  }
+}
+
+// ============================================================
+// MESSAGES
+// ============================================================
+function addMsg(role, text) {
+  const time = new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  S.history.push({ role, content: text, time });
+  if (role === 'user') { S.msgs++; S.xp = Math.min(100, S.xp + 5); }
+  save(); updateStats();
+  renderMsg({ role, content: text, time });
+}
+
+function renderMsg(m) {
+  const box = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.className = `msg ${m.role === 'user' ? 'user' : 'ai'}`;
+  const av = m.role === 'user'
+    ? (S.name?.[0]?.toUpperCase() || '👤')
+    : (ICONS[S.companion] || '🌿');
+  d.innerHTML = `
+    <div class="msg-avatar">${av}</div>
+    <div class="msg-content">
+      <div class="bubble">${escHtml(m.content)}</div>
+      <div class="msg-time">${m.time || ''}</div>
+    </div>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function renderAll() {
+  document.getElementById('messages').innerHTML = '';
+  S.history.forEach(renderMsg);
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/\n/g,'<br>');
+}
+
+function showTyping() {
+  const box = document.getElementById('messages');
+  const d = document.createElement('div');
+  d.id = 'typing'; d.className = 'msg ai';
+  d.innerHTML = `<div class="msg-avatar">${ICONS[S.companion]||'🌿'}</div>
+    <div class="msg-content"><div class="bubble">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div></div>`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function hideTyping() { document.getElementById('typing')?.remove(); }
+
+function updateStats() {
+  document.getElementById('xpFill').style.width = S.xp + '%';
+  document.getElementById('statConvs').textContent = S.convs || 0;
+  document.getElementById('statMsgs').textContent = S.msgs || 0;
+  document.getElementById('statXP').textContent = (S.xp || 0) + ' XP';
+  document.getElementById('statComp').textContent = S.companion || '—';
+}
+
+// ============================================================
+// SEND
+// ============================================================
+async function sendMsg() {
+  const inp = document.getElementById('msgInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; autoGrow(inp);
+  addMsg('user', text);
+  showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        userName: S.name,
+        companion: S.companion,
+        spiritual: S.spiritual,
+        history: S.history.slice(-12).map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content
+        }))
+      })
+    });
+    const data = await res.json();
+    hideTyping();
+    addMsg('ai', data.reply || data.message || 'Estoy acá contigo 🌿');
+  } catch(e) {
+    hideTyping();
+    addMsg('ai', 'Hubo un momento de silencio... ¿Querés intentar de nuevo? 🌿');
+  }
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ============================================================
+// MICROPHONE
+// ============================================================
+let recog = null, isRec = false;
+
+function toggleMic() {
+  isRec ? stopMic() : startMic();
+}
+
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Tu navegador no soporta voz. Probá Chrome.'); return; }
+
+  recog = new SR();
+  recog.lang = 'es-AR';
+  recog.continuous = false;
+  recog.interimResults = true;
+
+  recog.onstart = () => {
+    isRec = true;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('recInd').classList.add('on');
+  };
+
+  recog.onresult = (e) => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join('');
+    const inp = document.getElementById('msgInput');
+    inp.value = t; autoGrow(inp);
+  };
+
+  recog.onend = () => {
+    stopMic();
+    const text = document.getElementById('msgInput').value.trim();
+    if (text) setTimeout(sendMsg, 400);
+  };
+
+  recog.onerror = (e) => { console.error('Mic:', e.error); stopMic(); };
+  recog.start();
+}
+
+function stopMic() {
+  isRec = false;
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('recInd').classList.remove('on');
+  try { recog?.stop(); } catch(e) {}
+  recog = null;
+}
+
+// ============================================================
+// MUSIC — Web Audio API (ambient tone generator)
+// ============================================================
+const Music = {
+  ctx: null, nodes: [], gain: null,
+  playing: false, volume: 0.3, mood: null,
+
+  presets: {
+    'Calma':     { freqs: [55, 110, 165, 220], speed: 0.07, type: 'sine' },
+    'Reflexión': { freqs: [174, 285, 396],      speed: 0.11, type: 'sine' },
+    'Energía':   { freqs: [396, 528, 639, 741], speed: 0.28, type: 'triangle' },
+    'Sanación':  { freqs: [432, 528, 396, 285], speed: 0.09, type: 'sine' }
+  },
+
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+  },
+
+  play(mood) {
+    this.init();
+    this.stopNow();
+    this.mood = mood;
+    const p = this.presets[mood];
+
+    this.gain = this.ctx.createGain();
+    this.gain.gain.setValueAtTime(0, this.ctx.currentTime);
+    this.gain.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 2.5);
+    this.gain.connect(this.ctx.destination);
+
+    p.freqs.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      const lfo = this.ctx.createOscillator();
+      const lg = this.ctx.createGain();
+
+      osc.type = p.type;
+      osc.frequency.value = freq;
+      g.gain.value = 0.22 / p.freqs.length;
+
+      lfo.frequency.value = p.speed + i * 0.04;
+      lg.gain.value = freq * 0.012;
+
+      lfo.connect(lg); lg.connect(osc.frequency);
+      osc.connect(g); g.connect(this.gain);
+
+      osc.start(); lfo.start();
+      this.nodes.push(osc, lfo, g, lg);
+    });
+
+    this.playing = true;
+    document.getElementById('playBtn').textContent = '⏸';
+  },
+
+  stopNow() {
+    const t = this.ctx?.currentTime || 0;
+    if (this.gain) {
+      this.gain.gain.linearRampToValueAtTime(0, t + 0.6);
+      setTimeout(() => {
+        this.nodes.forEach(n => { try { n.stop(); n.disconnect(); } catch(e) {} });
+        this.nodes = [];
+        try { this.gain?.disconnect(); } catch(e) {}
+      }, 700);
+    } else {
+      this.nodes.forEach(n => { try { n.stop(); } catch(e) {} });
+      this.nodes = [];
+    }
+    this.playing = false;
+    document.getElementById('playBtn').textContent = '▶';
+  },
+
+  setVolume(v) {
+    this.volume = v / 100;
+    if (this.gain) this.gain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+  }
+};
+
+function pickMood(mood, btn) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  S.mood = mood; save();
+  Music.play(mood);
+}
+
+function togglePlay() {
+  if (Music.playing) Music.stopNow();
+  else if (S.mood) Music.play(S.mood);
+  else document.querySelector('.mood-btn')?.click();
+}
+
+function toggleMusicPanel() {
+  document.getElementById('musicPanel').classList.toggle('open');
+  document.getElementById('musicBtn').classList.toggle('on');
+}
+
+// ============================================================
+// PANELS
+// ============================================================
+function openPanel(id) { document.getElementById(id).classList.add('open'); }
+function closePanel(id) { document.getElementById(id).classList.remove('open'); }
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function toggleTheme() {
+  S.theme = S.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', S.theme);
+  save();
+}
+
+function changeFont(delta) {
+  S.fontSize = Math.max(14, Math.min(22, (S.fontSize || 17) + delta));
+  document.documentElement.style.fontSize = S.fontSize + 'px';
+  save();
+}
+
+function clearChat() {
+  if (!confirm('¿Limpiar la conversación?')) return;
+  S.history = []; S.xp = 0; save();
+  document.getElementById('messages').innerHTML = '';
+  updateStats();
+  closePanel('panelConfig');
+  setTimeout(() => addMsg('ai', `Página nueva, ${S.name}. Acá estoy 🌿`), 300);
+}
+
+function resetAll() {
+  if (!confirm('¿Volver al inicio? Se perderán los datos de esta sesión.')) return;
+  localStorage.removeItem('tk_v2');
+  location.reload();
+}
+</script>
+
+</body>
+</html>
