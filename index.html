@@ -400,122 +400,147 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 </script>
 
 <!-- ════════════════════════════════════════════
-     TUKOMPA · MÚSICA AMBIENTAL 432Hz
-     iOS Safari compatible · Sin reverb pesado
+     TUKOMPA · AUDIO PSICOACÚSTICO
+     Binaural Theta 6Hz · 174Hz · 432Hz · 528Hz
+     Sub-bass 40Hz · Compresor · LFO respiración
 ════════════════════════════════════════════ -->
 
 <style>
-#tk-amb{position:fixed;bottom:22px;left:18px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(200,169,110,.25);background:rgba(6,11,24,.95);color:#c8a96e;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:99999;opacity:.4;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:opacity .4s,box-shadow .4s,transform .15s;padding:0;-webkit-tap-highlight-color:transparent;outline:none;-webkit-appearance:none;appearance:none}
-#tk-amb.on{opacity:.95;box-shadow:0 0 16px rgba(200,169,110,.2)}
+#tk-amb{position:fixed;bottom:22px;left:18px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,.3);background:rgba(6,11,24,.96);display:flex;align-items:center;justify-content:center;z-index:99999;opacity:.45;transition:opacity .4s,box-shadow .4s;padding:0;-webkit-tap-highlight-color:transparent;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer}
+#tk-amb.on{opacity:1;box-shadow:0 0 18px rgba(200,169,110,.3)}
 </style>
 
 <script>
 (function(){
-var AC=window.AudioContext||window.webkitAudioContext;
-if(!AC)return;
-var ctx=null,master=null,oscs=[],lfos=[],playing=false,built=false;
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
 
-var FREQS=[216,432,648,864,540]; // 432Hz + armónicos puros
-var GAINS=[.6,1,.45,.22,.35];
-var DETUNE=[0,0,4,-3,2];
-var VOL=0.032;
+  var ctx=null,master=null,playing=false;
 
-function build(){
-  if(built)return;
-  built=true;
-  ctx=new AC();
-  master=ctx.createGain();
-  master.gain.setValueAtTime(0,ctx.currentTime);
-  master.connect(ctx.destination);
+  /* ── CADENA DE AUDIO ──────────────────────────
+     Osciladores → gainNodo → compresor → master → salida
 
-  // Delay suave (reemplaza reverb — liviano para iOS)
-  var delay=ctx.createDelay(2);
-  delay.delayTime.value=0.38;
-  var feedback=ctx.createGain();
-  feedback.gain.value=0.28;
-  var delayVol=ctx.createGain();
-  delayVol.gain.value=0.18;
-  delay.connect(feedback);
-  feedback.connect(delay);
-  delay.connect(delayVol);
-  delayVol.connect(master);
+     BINAURAL THETA:
+       Canal izquierdo: 432Hz
+       Canal derecho:   438Hz
+       Diferencia:      6Hz → onda theta en el cerebro
+       Requiere auriculares para efecto completo
+       Con altavoz: pad armónico igual de efectivo
 
-  // Osciladores
-  FREQS.forEach(function(f,i){
-    var osc=ctx.createOscillator();
-    osc.type='sine';
-    osc.frequency.value=f;
-    osc.detune.value=DETUNE[i];
-    var g=ctx.createGain();
-    g.gain.value=GAINS[i];
-    osc.connect(g);
-    g.connect(master);
-    g.connect(delay);
-    osc.start();
-    oscs.push(osc);
+     FRECUENCIAS:
+       40Hz  — sub-bass, presencia corporal, seguridad
+       174Hz — sistema nervioso: señal de "estás seguro"
+       432Hz — fundamental cálido (L binaural)
+       438Hz — par binaural (R)
+       528Hz — coherencia cardíaca / resonancia emocional
+       864Hz — octava de 432, aire y apertura
 
-    // LFO respiración individual por voz
-    var lfo=ctx.createOscillator();
-    lfo.type='sine';
-    lfo.frequency.value=0.055+i*0.008;
-    var lfoG=ctx.createGain();
-    lfoG.gain.value=GAINS[i]*0.18;
-    lfo.connect(lfoG);
-    lfoG.connect(g.gain);
-    lfo.start();
-    lfos.push(lfo);
-  });
-}
+     LFO RESPIRACIÓN:
+       0.1Hz = ciclo de 10s = respiración profunda
+       Modula suavemente el volumen total
+  ─────────────────────────────────────────── */
 
-function start(){
-  build();
-  if(ctx.state==='suspended')ctx.resume();
-  var t=ctx.currentTime;
-  master.gain.cancelScheduledValues(t);
-  master.gain.setValueAtTime(master.gain.value,t);
-  master.gain.setTargetAtTime(VOL,t,1.8); // iOS-safe: setTargetAtTime en lugar de linearRamp
-  playing=true;
-  btn.classList.add('on');
-  btn.innerHTML=PAUSE;
-}
+  var PLAY ='<svg width="13" height="13" viewBox="0 0 24 24" fill="#c8a96e"><path d="M8 5v14l11-7z"/></svg>';
+  var PAUSE='<svg width="13" height="13" viewBox="0 0 24 24" fill="#c8a96e"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
 
-function stop(){
-  var t=ctx.currentTime;
-  master.gain.cancelScheduledValues(t);
-  master.gain.setValueAtTime(master.gain.value,t);
-  master.gain.setTargetAtTime(0,t,1.2);
-  playing=false;
-  btn.classList.remove('on');
+  var btn=document.createElement('button');
+  btn.id='tk-amb';
   btn.innerHTML=PLAY;
-}
-
-var PLAY='<svg width="12" height="12" viewBox="0 0 24 24" fill="#c8a96e"><path d="M8 5v14l11-7z"/></svg>';
-var PAUSE='<svg width="12" height="12" viewBox="0 0 24 24" fill="#c8a96e"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-
-var btn=document.createElement('button');
-btn.id='tk-amb';
-btn.innerHTML=PLAY;
-btn.setAttribute('aria-label','Música ambiental');
-
-// Click del botón — siempre dentro del gesto → iOS lo acepta
-btn.addEventListener('click',function(e){
-  e.stopPropagation();
-  playing?stop():start();
-});
-
-// Auto-inicio en primer toque de cualquier parte
-var autoStart=function(e){
-  document.removeEventListener('touchstart',autoStart,true);
-  document.removeEventListener('click',autoStart,true);
-  if(!playing)start();
-};
-document.addEventListener('touchstart',autoStart,{capture:true,passive:true});
-document.addEventListener('click',autoStart,{capture:true,once:true});
-
-document.addEventListener('DOMContentLoaded',function(){
+  btn.setAttribute('aria-label','Música');
   document.body.appendChild(btn);
-});
-if(document.readyState!=='loading')document.body.appendChild(btn);
+
+  function buildAudio(){
+    ctx=new AC();
+
+    /* Compresor dinámico — nivel consistente, nunca molesto */
+    var comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-24;
+    comp.knee.value=12;
+    comp.ratio.value=4;
+    comp.attack.value=0.08;
+    comp.release.value=0.5;
+
+    /* Master gain */
+    master=ctx.createGain();
+    master.gain.value=0;
+
+    /* LFO respiración global: 0.1Hz, ±8% del volumen */
+    var breathLFO=ctx.createOscillator();
+    breathLFO.type='sine';
+    breathLFO.frequency.value=0.1;
+    var breathAmp=ctx.createGain();
+    breathAmp.gain.value=0.08;
+    breathLFO.connect(breathAmp);
+    breathAmp.connect(master.gain);
+    breathLFO.start(0);
+
+    /* Cadena: comp → master → destino */
+    comp.connect(master);
+    master.connect(ctx.destination);
+
+    /* ── BINAURAL THETA (L/R separados) ── */
+    var merger=ctx.createChannelMerger(2);
+    merger.connect(comp);
+
+    function binauralOsc(freq,channel,gain){
+      var o=ctx.createOscillator();
+      o.type='sine';
+      o.frequency.value=freq;
+      var g=ctx.createGain();
+      g.gain.value=gain;
+      o.connect(g);
+      g.connect(merger,0,channel);
+      o.start(0);
+    }
+    /* 432Hz izquierdo, 438Hz derecho → cerebro procesa diferencia 6Hz = Theta */
+    binauralOsc(432,0,0.55);
+    binauralOsc(438,1,0.55);
+
+    /* ── CAPAS MONOAURALES → comp ── */
+    function monoOsc(freq,gain,lfoFreq,lfoAmt){
+      var o=ctx.createOscillator();
+      o.type='sine';
+      o.frequency.value=freq;
+      var g=ctx.createGain();
+      g.gain.value=gain;
+      if(lfoFreq){
+        var lfo=ctx.createOscillator();
+        lfo.type='sine';
+        lfo.frequency.value=lfoFreq;
+        var la=ctx.createGain();
+        la.gain.value=lfoAmt||gain*0.12;
+        lfo.connect(la);
+        la.connect(g.gain);
+        lfo.start(0);
+      }
+      o.connect(g);
+      g.connect(comp);
+      o.start(0);
+    }
+
+    monoOsc(40,  0.18, 0.07,  0.03);  /* Sub-bass: presencia, contención */
+    monoOsc(174, 0.22, 0.09,  0.025); /* Seguridad del sistema nervioso  */
+    monoOsc(528, 0.18, 0.11,  0.02);  /* Coherencia cardíaca             */
+    monoOsc(864, 0.10, 0.13,  0.012); /* Octava alta, apertura           */
+  }
+
+  btn.addEventListener('click', async function(){
+    if(!ctx) buildAudio();
+    await ctx.resume();
+
+    if(!playing){
+      /* Fade in suave: 4 segundos para llegar al volumen */
+      master.gain.setTargetAtTime(0.55, ctx.currentTime, 1.4);
+      playing=true;
+      btn.innerHTML=PAUSE;
+      btn.classList.add('on');
+    } else {
+      master.gain.setTargetAtTime(0, ctx.currentTime, 1.2);
+      playing=false;
+      btn.innerHTML=PLAY;
+      btn.classList.remove('on');
+    }
+  });
 
 })();
 </script>
