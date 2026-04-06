@@ -345,10 +345,13 @@ document.getElementById('xpLabel').textContent='Pensando...';
 var body={message:t||'Describí esta imagen',userName:UN,companionType:CT,spiritualPath:SP,history:HS.slice(-12)};
 if(PENDING_IMG)body.image=PENDING_IMG;PENDING_IMG=null;
 document.getElementById('chatInput').placeholder='Háblame...';
-try{var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-var d=await r.json();hide('typingEl');refreshXP();
-if(d.response){addBubble('ai',d.response);speak(d.response);giveXP(3,'Respuesta')}else{addBubble('ai',fallback(t))}}
-catch(e){hide('typingEl');refreshXP();addBubble('ai',fallback(t))}}
+try{
+  var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  var d=await r.json();hide('typingEl');refreshXP();
+  if(d.response&&d.response.length>0){addBubble('ai',d.response);speak(d.response);giveXP(3,'Respuesta');}
+  else if(d.error){addBubble('ai','[Error: '+d.error+'] Revisá ANTHROPIC_API_KEY en Vercel.');}
+  else{addBubble('ai',fallback(t));}
+}catch(e){hide('typingEl');refreshXP();addBubble('ai','[Error de red: '+e.message+']');}}
 
 function onImage(inp){if(!inp.files||!inp.files[0])return;var s=getXP();s.pics=(s.pics||0)+1;setXP(s);
 var r=new FileReader();r.onload=function(e){PENDING_IMG=e.target.result;document.getElementById('chatInput').placeholder='📷 Lista. Escribí o enviá...';updateSend()};r.readAsDataURL(inp.files[0]);inp.value=''}
