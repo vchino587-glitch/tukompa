@@ -37,22 +37,15 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 16px;
-      -webkit-font-smoothing: antialiased;
-      overflow: hidden;
+      height: 100%; background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 16px;
+      -webkit-font-smoothing: antialiased; overflow: hidden;
     }
 
     .screen {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      transition: opacity 0.4s ease;
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; transition: opacity 0.4s ease;
     }
     .screen.hidden { opacity: 0; pointer-events: none; }
 
@@ -87,9 +80,8 @@
       color: var(--text-dim); letter-spacing: 0.02em; margin-bottom: 52px;
     }
     .login-card {
-      width: 100%; max-width: 360px;
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 32px 28px;
+      width: 100%; max-width: 360px; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 20px; padding: 32px 28px;
       display: flex; flex-direction: column; gap: 20px;
     }
     .login-card h2 {
@@ -100,18 +92,17 @@
 
     #btn-google {
       display: flex; align-items: center; justify-content: center; gap: 12px;
-      width: 100%; padding: 14px 20px;
-      background: transparent; border: 1px solid var(--gold); border-radius: var(--radius);
-      color: var(--gold); font-family: var(--font-sans); font-size: 15px;
-      font-weight: 500; letter-spacing: 0.03em; cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s;
-      -webkit-tap-highlight-color: transparent;
+      width: 100%; padding: 14px 20px; background: transparent;
+      border: 1px solid var(--gold); border-radius: var(--radius); color: var(--gold);
+      font-family: var(--font-sans); font-size: 15px; font-weight: 500;
+      letter-spacing: 0.03em; cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s; -webkit-tap-highlight-color: transparent;
     }
     #btn-google:active { background: var(--gold-glow); box-shadow: 0 0 20px var(--gold-glow); }
     #btn-google .btn-spinner {
-      width: 18px; height: 18px;
-      border: 2px solid var(--gold-dim); border-top-color: var(--gold);
-      border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+      width: 18px; height: 18px; border: 2px solid var(--gold-dim);
+      border-top-color: var(--gold); border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: none;
     }
     #btn-google.loading .btn-spinner { display: block; }
     #btn-google.loading .btn-icon,
@@ -125,7 +116,6 @@
       content: ''; flex: 1; height: 1px; background: var(--border);
     }
     .login-privacy { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.5; }
-
     #login-error {
       font-size: 13px; color: #e07070; text-align: center; display: none;
       padding: 10px 14px; background: rgba(220,70,70,0.08);
@@ -141,9 +131,8 @@
     .chat-header {
       width: 100%; display: flex; align-items: center; justify-content: space-between;
       padding: 14px 18px; border-bottom: 1px solid var(--border);
-      background: rgba(6,11,24,0.85);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      flex-shrink: 0; z-index: 10;
+      background: rgba(6,11,24,0.85); backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px); flex-shrink: 0; z-index: 10;
     }
     .header-brand {
       font-family: var(--font-serif); font-size: 24px; font-weight: 300;
@@ -159,16 +148,15 @@
       max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     #btn-logout {
-      background: transparent; border: 1px solid var(--border);
-      border-radius: 8px; padding: 5px 10px; color: var(--text-dim);
-      font-family: var(--font-sans); font-size: 12px; cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+      background: transparent; border: 1px solid var(--border); border-radius: 8px;
+      padding: 5px 10px; color: var(--text-dim); font-family: var(--font-sans);
+      font-size: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     #btn-logout:active { color: var(--gold); border-color: var(--gold-dim); }
 
     #messages {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-      padding: 20px 16px; display: flex; flex-direction: column; gap: 14px;
+      flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 14px;
       -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
     }
     .messages-empty {
@@ -186,8 +174,8 @@
     .message.user      { align-self: flex-end;   align-items: flex-end; }
     .message.assistant { align-self: flex-start; align-items: flex-start; }
     .message-bubble {
-      padding: 11px 15px; border-radius: 16px;
-      font-size: 15px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+      padding: 11px 15px; border-radius: 16px; font-size: 15px;
+      line-height: 1.6; white-space: pre-wrap; word-break: break-word;
     }
     .message.user .message-bubble {
       background: var(--gold); color: #060B18; border-bottom-right-radius: 4px;
@@ -199,8 +187,8 @@
     .message-meta { font-size: 11px; color: var(--text-dim); margin-top: 4px; padding: 0 4px; }
 
     .typing-indicator {
-      display: flex; align-items: center; gap: 5px;
-      padding: 12px 16px; background: var(--bg3); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 5px; padding: 12px 16px;
+      background: var(--bg3); border: 1px solid var(--border);
       border-radius: 16px; border-bottom-left-radius: 4px; width: fit-content;
     }
     .typing-indicator span {
@@ -213,10 +201,8 @@
     .chat-input-area {
       width: 100%; padding: 12px 14px;
       padding-bottom: calc(12px + var(--safe-bottom));
-      border-top: 1px solid var(--border);
-      background: rgba(6,11,24,0.9);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      flex-shrink: 0;
+      border-top: 1px solid var(--border); background: rgba(6,11,24,0.9);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); flex-shrink: 0;
     }
     .input-row { display: flex; align-items: flex-end; gap: 10px; max-width: 700px; margin: 0 auto; }
     #user-input {
@@ -230,8 +216,8 @@
     #user-input:focus { border-color: var(--gold-dim); }
     #btn-send {
       width: 46px; height: 46px; border-radius: 50%; background: var(--gold);
-      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+      border: none; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
       transition: opacity 0.2s, transform 0.15s;
     }
     #btn-send:active { transform: scale(0.92); }
@@ -289,7 +275,7 @@
     <div class="chat-header">
       <div class="header-brand">TuKompa</div>
       <div class="header-user">
-        <img id="user-avatar" class="user-avatar" src="" alt="Avatar" onerror="this.style.display='none'" />
+        <img id="user-avatar" class="user-avatar" src="" alt="" onerror="this.style.display='none'" />
         <span id="user-display-name" class="user-name"></span>
         <button id="btn-logout" onclick="signOut()">Salir</button>
       </div>
@@ -312,7 +298,6 @@
   </div>
 
   <script>
-    /* ══ CONFIG ═══════════════════════════════════════════ */
     const firebaseConfig = {
       apiKey:            "AIzaSyCO5hNAkEaFq0Hqs8iBJD1gkVM3hFbpv2g",
       authDomain:        "tukompa-9b4c9.firebaseapp.com",
@@ -327,24 +312,67 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    /* ══ ESTADO ═══════════════════════════════════════════ */
     let currentUser         = null;
     let conversationHistory = [];
     let isTyping            = false;
-    let authResolved        = false; // evita parpadeo en iOS
 
     const messagesEl = document.getElementById('messages');
     const inputEl    = document.getElementById('user-input');
     const sendBtn    = document.getElementById('btn-send');
     const loginError = document.getElementById('login-error');
 
-    /* ══ PANTALLAS ════════════════════════════════════════ */
     function showScreen(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       document.getElementById('screen-' + name).classList.remove('hidden');
     }
 
-    /* ══ AUTH ═════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       AUTH — estrategia robusta para iOS Safari:
+       1. Intentar getRedirectResult (viene de Google)
+       2. Si hay usuario → chat
+       3. Si no → onAuthStateChanged decide
+       4. Timeout de seguridad: si en 8s no pasa nada → login
+    ══════════════════════════════════════════════════════ */
+    let authDone = false;
+
+    function resolveAuth(user) {
+      if (authDone) return;
+      authDone = true;
+      if (user) {
+        currentUser = user;
+        setupChat(user).then(() => showScreen('chat'));
+      } else {
+        showScreen('login');
+      }
+    }
+
+    // Timeout de seguridad — nunca quedarse colgado en la pantalla de carga
+    setTimeout(() => {
+      if (!authDone) {
+        console.warn('Auth timeout — mostrando login');
+        resolveAuth(null);
+      }
+    }, 8000);
+
+    // Paso 1: capturar redirect de Google
+    auth.getRedirectResult()
+      .then(result => {
+        if (result && result.user) {
+          resolveAuth(result.user);
+        }
+        // Si no hay resultado de redirect, onAuthStateChanged se encarga
+      })
+      .catch(err => {
+        console.error('getRedirectResult:', err.code);
+        // No mostramos error aquí — puede ser simplemente que no hubo redirect
+      });
+
+    // Paso 2: estado de sesión existente
+    auth.onAuthStateChanged(user => {
+      resolveAuth(user); // si ya se resolvió arriba, esta llamada es ignorada
+    });
+
+    /* ══ SIGN IN ══════════════════════════════════════════ */
     function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
       btn.classList.add('loading');
@@ -356,13 +384,9 @@
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      // Guardamos una marca antes de redirigir
-      try { sessionStorage.setItem('tk_redirecting', '1'); } catch(e) {}
-
-      auth.signInWithRedirect(provider).catch((err) => {
+      auth.signInWithRedirect(provider).catch(err => {
         btn.classList.remove('loading');
         btn.disabled = false;
-        try { sessionStorage.removeItem('tk_redirecting'); } catch(e) {}
         showLoginError('Error al iniciar sesión. Intenta de nuevo.');
         console.error(err);
       });
@@ -370,9 +394,10 @@
 
     function signOut() {
       auth.signOut().then(() => {
+        authDone = false;
+        currentUser = null;
         conversationHistory = [];
         messagesEl.innerHTML = '';
-        currentUser = null;
         showScreen('login');
       });
     }
@@ -381,49 +406,6 @@
       loginError.textContent = msg;
       loginError.classList.add('visible');
     }
-
-    /* ══ ARRANQUE: primero intentamos capturar el redirect ═ */
-    async function init() {
-      try {
-        // getRedirectResult primero — captura el resultado de Google
-        const result = await auth.getRedirectResult();
-        if (result && result.user) {
-          // Login via redirect exitoso
-          currentUser = result.user;
-          try { sessionStorage.removeItem('tk_redirecting'); } catch(e) {}
-          await setupChat(currentUser);
-          showScreen('chat');
-          authResolved = true;
-          return;
-        }
-      } catch (err) {
-        console.error('getRedirectResult error:', err.code, err.message);
-        try { sessionStorage.removeItem('tk_redirecting'); } catch(e) {}
-      }
-
-      // Si no hubo redirect, escuchamos el estado de sesión existente
-      auth.onAuthStateChanged(async (user) => {
-        if (authResolved) return; // ya se resolvió arriba
-        authResolved = true;
-
-        if (user) {
-          currentUser = user;
-          await setupChat(user);
-          showScreen('chat');
-        } else {
-          // Solo mostramos login si NO estamos en medio de un redirect
-          let redirecting = false;
-          try { redirecting = sessionStorage.getItem('tk_redirecting') === '1'; } catch(e) {}
-
-          if (!redirecting) {
-            showScreen('login');
-          }
-          // Si redirecting === true, seguimos en pantalla de carga hasta que llegue el resultado
-        }
-      });
-    }
-
-    init();
 
     /* ══ SETUP CHAT ═══════════════════════════════════════ */
     async function setupChat(user) {
@@ -439,19 +421,21 @@
     /* ══ FIRESTORE ════════════════════════════════════════ */
     async function loadHistory(uid) {
       messagesEl.innerHTML = '';
-      conversationHistory  = [];
+      conversationHistory = [];
       try {
         const doc = await db.collection('chats').doc(uid).get();
         if (doc.exists) {
           const msgs = doc.data().messages || [];
           conversationHistory = msgs.map(m => ({ role: m.role, content: m.content }));
           const visible = msgs.slice(-60);
-          visible.length === 0 ? renderEmptyState() : visible.forEach(m => renderMessage(m.role, m.content, m.timestamp, false));
+          visible.length === 0
+            ? renderEmptyState()
+            : visible.forEach(m => renderMessage(m.role, m.content, m.timestamp, false));
         } else {
           renderEmptyState();
         }
       } catch (err) {
-        console.error('Error cargando historial:', err);
+        console.error('loadHistory:', err);
         renderEmptyState();
       }
     }
@@ -465,7 +449,7 @@
           userName:  currentUser.displayName || '',
           userEmail: currentUser.email || ''
         });
-      } catch (err) { console.error('Error guardando:', err); }
+      } catch (err) { console.error('saveHistory:', err); }
     }
 
     async function clearHistory() {
@@ -474,7 +458,7 @@
       messagesEl.innerHTML = '';
       renderEmptyState();
       try { await db.collection('chats').doc(currentUser.uid).delete(); }
-      catch (err) { console.error('Error borrando:', err); }
+      catch (err) { console.error('clearHistory:', err); }
     }
 
     /* ══ RENDER ═══════════════════════════════════════════ */
@@ -523,7 +507,7 @@
       return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    /* ══ ENVIAR MENSAJE ═══════════════════════════════════ */
+    /* ══ ENVIAR ═══════════════════════════════════════════ */
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text || isTyping || !currentUser) return;
@@ -537,7 +521,7 @@
       renderTyping();
 
       try {
-        const response = await fetch('/api/chat', {
+        const res = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -551,8 +535,8 @@
           })
         });
 
-        if (!response.ok) throw new Error(`API ${response.status}`);
-        const data  = await response.json();
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        const data  = await res.json();
         const reply = data.reply || data.message || data.content || 'Sin respuesta';
 
         removeTyping();
@@ -563,7 +547,7 @@
 
       } catch (err) {
         removeTyping();
-        renderMessage('assistant', 'Hubo un error al conectar. Intenta de nuevo en un momento.', Date.now());
+        renderMessage('assistant', 'Hubo un error al conectar. Intenta de nuevo.', Date.now());
         scrollToBottom(); console.error(err);
       } finally {
         isTyping = false; sendBtn.disabled = false; inputEl.focus();
