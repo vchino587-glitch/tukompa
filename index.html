@@ -499,8 +499,8 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
       o.start(0);
     }
     /* 432Hz izquierdo, 438Hz derecho → cerebro procesa diferencia 6Hz = Theta */
-    binauralOsc(432,0,0.55);
-    binauralOsc(438,1,0.55);
+    binauralOsc(432,0,0.28);
+    binauralOsc(438,1,0.28);
 
     /* ── CAPAS MONOAURALES → comp ── */
     function monoOsc(freq,gain,lfoFreq,lfoAmt){
@@ -532,16 +532,16 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 
   btn.addEventListener('click', async function(){
     if(!ctx) buildAudio();
-    await ctx.resume();
 
     if(!playing){
-      /* Fade in suave: 4 segundos para llegar al volumen */
-      master.gain.setTargetAtTime(0.55, ctx.currentTime, 1.4);
+      await ctx.resume();
+      master.gain.setTargetAtTime(0.12, ctx.currentTime, 1.5);
       playing=true;
       btn.innerHTML=PAUSE;
       btn.classList.add('on');
     } else {
-      master.gain.setTargetAtTime(0, ctx.currentTime, 1.2);
+      master.gain.setTargetAtTime(0, ctx.currentTime, 0.8);
+      setTimeout(function(){ ctx.suspend(); }, 1200);
       playing=false;
       btn.innerHTML=PLAY;
       btn.classList.remove('on');
