@@ -303,15 +303,13 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    /* Capturar token de Google en la URL ANTES de cualquier otra cosa */
+    /* Capturar token de Google en la URL */
     const urlHash    = new URLSearchParams(window.location.hash.replace('#', '?'));
     const oauthToken = urlHash.get('access_token');
-    if (oauthToken) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    if (oauthToken) window.history.replaceState({}, document.title, window.location.pathname);
 
     let currentUser         = null;
-    let conversationHistory = [];
+    let conversationHistory = []; // [{role, content}]
     let isTyping            = false;
 
     const messagesEl = document.getElementById('messages');
@@ -319,66 +317,43 @@
     const sendBtn    = document.getElementById('btn-send');
     const loginError = document.getElementById('login-error');
 
-    /* ══ localStorage — persiste aunque se cierre Safari ═ */
+    /* localStorage */
     function saveUserLocal(user) {
       localStorage.setItem('tk_user', JSON.stringify({
-        uid:         user.uid,
-        displayName: user.displayName || '',
-        email:       user.email || '',
-        photoURL:    user.photoURL || ''
+        uid: user.uid, displayName: user.displayName || '',
+        email: user.email || '', photoURL: user.photoURL || ''
       }));
     }
-
     function loadUserLocal() {
-      try { return JSON.parse(localStorage.getItem('tk_user')); }
-      catch(e) { return null; }
+      try { return JSON.parse(localStorage.getItem('tk_user')); } catch(e) { return null; }
     }
-
-    function clearUserLocal() {
-      localStorage.removeItem('tk_user');
-    }
+    function clearUserLocal() { localStorage.removeItem('tk_user'); }
 
     function showScreen(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       document.getElementById('screen-' + name).classList.remove('hidden');
     }
-
     function showLoginError(msg) {
-      loginError.textContent = msg;
-      loginError.classList.add('visible');
+      loginError.textContent = msg; loginError.classList.add('visible');
     }
 
-    /* ══ ARRANQUE ═════════════════════════════════════════ */
+    /* ARRANQUE */
     async function init() {
-
-      /* CASO 1: Venimos de Google con access_token en la URL */
       if (oauthToken) {
         try {
           const credential = firebase.auth.GoogleAuthProvider.credential(null, oauthToken);
           const result     = await auth.signInWithCredential(credential);
           saveUserLocal(result.user);
-          await enterChat(result.user);
-          return;
+          await enterChat(result.user); return;
         } catch(err) {
           console.error('signInWithCredential:', err);
-          clearUserLocal();
-          showLoginError('Error al iniciar sesión. Intenta de nuevo.');
-          showScreen('login');
-          return;
+          clearUserLocal(); showLoginError('Error al iniciar sesión.'); showScreen('login'); return;
         }
       }
-
-      /* CASO 2: Sesión guardada en localStorage → entrada directa sin pasar por Google */
       const localUser = loadUserLocal();
-      if (localUser) {
-        await enterChat(localUser);
-        return;
-      }
-
-      /* CASO 3: Sin sesión → login */
+      if (localUser) { await enterChat(localUser); return; }
       showScreen('login');
     }
-
     init();
 
     async function enterChat(user) {
@@ -387,31 +362,23 @@
       showScreen('chat');
     }
 
-    /* ══ SIGN IN ══════════════════════════════════════════ */
+    /* SIGN IN */
     function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
-      btn.classList.add('loading');
-      btn.disabled = true;
-
+      btn.classList.add('loading'); btn.disabled = true;
+      loginError.classList.remove('visible');
       const params = new URLSearchParams({
-        response_type: 'token',
-        client_id:     GOOGLE_CLIENT_ID,
-        redirect_uri:  REDIRECT_URI,
-        scope:         'openid profile email',
-        prompt:        'select_account'
+        response_type: 'token', client_id: GOOGLE_CLIENT_ID,
+        redirect_uri: REDIRECT_URI, scope: 'openid profile email', prompt: 'select_account'
       });
-
       window.location.href = 'https://accounts.google.com/o/oauth2/auth?' + params.toString();
     }
 
-    /* ══ SIGN OUT ═════════════════════════════════════════ */
     function signOut() {
-      clearUserLocal();
-      auth.signOut().catch(() => {});
-      window.location.reload();
+      clearUserLocal(); auth.signOut().catch(() => {}); window.location.reload();
     }
 
-    /* ══ SETUP CHAT ═══════════════════════════════════════ */
+    /* SETUP CHAT */
     async function setupChat(user) {
       const firstName = user.displayName ? user.displayName.split(' ')[0] : 'Usuario';
       document.getElementById('user-display-name').textContent = firstName;
@@ -422,26 +389,19 @@
       scrollToBottom();
     }
 
-    /* ══ FIRESTORE ════════════════════════════════════════ */
+    /* FIRESTORE */
     async function loadHistory(uid) {
-      messagesEl.innerHTML = '';
-      conversationHistory = [];
+      messagesEl.innerHTML = ''; conversationHistory = [];
       try {
         const doc = await db.collection('chats').doc(uid).get();
         if (doc.exists) {
           const msgs = doc.data().messages || [];
           conversationHistory = msgs.map(m => ({ role: m.role, content: m.content }));
           const visible = msgs.slice(-60);
-          visible.length === 0
-            ? renderEmptyState()
+          visible.length === 0 ? renderEmptyState()
             : visible.forEach(m => renderMessage(m.role, m.content, m.timestamp, false));
-        } else {
-          renderEmptyState();
-        }
-      } catch (err) {
-        console.error('loadHistory:', err);
-        renderEmptyState();
-      }
+        } else { renderEmptyState(); }
+      } catch (err) { console.error('loadHistory:', err); renderEmptyState(); }
     }
 
     async function saveHistory() {
@@ -458,14 +418,12 @@
 
     async function clearHistory() {
       if (!currentUser || !confirm('¿Borrar toda la conversación?')) return;
-      conversationHistory = [];
-      messagesEl.innerHTML = '';
-      renderEmptyState();
+      conversationHistory = []; messagesEl.innerHTML = ''; renderEmptyState();
       try { await db.collection('chats').doc(currentUser.uid).delete(); }
       catch (err) { console.error('clearHistory:', err); }
     }
 
-    /* ══ RENDER ═══════════════════════════════════════════ */
+    /* RENDER */
     function renderEmptyState() {
       const n = currentUser?.displayName ? ', ' + currentUser.displayName.split(' ')[0] : '';
       messagesEl.innerHTML = `
@@ -482,8 +440,7 @@
       const div = document.createElement('div');
       div.className = `message ${role}`;
       const time = timestamp
-        ? new Date(timestamp).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
-        : '';
+        ? new Date(timestamp).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '';
       div.innerHTML = `
         <div class="message-bubble">${escapeHtml(content)}</div>
         ${time ? `<div class="message-meta">${time}</div>` : ''}`;
@@ -497,21 +454,13 @@
       div.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
       messagesEl.appendChild(div); scrollToBottom();
     }
-
-    function removeTyping() {
-      const el = document.getElementById('typing-bubble');
-      if (el) el.remove();
-    }
-
-    function scrollToBottom() {
-      requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
-    }
-
+    function removeTyping() { const el = document.getElementById('typing-bubble'); if (el) el.remove(); }
+    function scrollToBottom() { requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; }); }
     function escapeHtml(t) {
       return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
-    /* ══ ENVIAR ═══════════════════════════════════════════ */
+    /* ENVIAR — formato compatible con el chat.js original */
     async function sendMessage() {
       const text = inputEl.value.trim();
       if (!text || isTyping || !currentUser) return;
@@ -521,26 +470,32 @@
 
       const ts = Date.now();
       renderMessage('user', text, ts); scrollToBottom();
+
+      // Guardamos el mensaje del usuario en el historial
       conversationHistory.push({ role: 'user', content: text, timestamp: ts });
+
       renderTyping();
 
       try {
+        const firstName = currentUser.displayName ? currentUser.displayName.split(' ')[0] : 'Usuario';
+
+        // Enviamos en el formato que espera el chat.js original
         const res = await fetch('/api/chat', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Id':    currentUser.uid,
-            'X-User-Name':  encodeURIComponent(currentUser.displayName || 'Usuario')
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: conversationHistory.map(m => ({ role: m.role, content: m.content })),
-            userId:   currentUser.uid,
-            userName: currentUser.displayName || 'Usuario'
+            message:       text,
+            userName:      firstName,
+            companionType: 'Companero',
+            spiritualPath: 'ninguno',
+            history:       conversationHistory.slice(0, -1).map(m => ({ role: m.role, content: m.content }))
           })
         });
+
         if (!res.ok) throw new Error(`API ${res.status}`);
         const data  = await res.json();
-        const reply = data.reply || data.message || data.content || '';
+        // El chat.js original devuelve { response: "..." }
+        const reply = data.response || data.reply || data.message || '';
 
         removeTyping();
         if (reply) {
@@ -559,7 +514,7 @@
       }
     }
 
-    /* ══ TEXTAREA ═════════════════════════════════════════ */
+    /* TEXTAREA */
     inputEl.addEventListener('input', function () {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 120) + 'px';
