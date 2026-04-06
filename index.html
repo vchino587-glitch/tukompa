@@ -342,7 +342,10 @@ addBubble('user',t||'📷 Imagen',PENDING_IMG||null);
 inp.value='';updateSend();trackMessage();giveXP(5,'Mensaje');
 document.getElementById('typingEl').style.display='flex';
 document.getElementById('xpLabel').textContent='Pensando...';
-var body={message:t||'Describí esta imagen',userName:UN,companionType:CT,spiritualPath:SP,history:HS.slice(-12)};
+var ahora=new Date();
+var horaReal=ahora.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+var fechaReal=ahora.toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+var body={message:'[Hora actual del usuario: '+horaReal+', '+fechaReal+']\n'+(t||'Describí esta imagen'),userName:UN,companionType:CT,spiritualPath:SP,history:HS.slice(-12)};
 if(PENDING_IMG)body.image=PENDING_IMG;PENDING_IMG=null;
 document.getElementById('chatInput').placeholder='Háblame...';
 try{
