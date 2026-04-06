@@ -398,6 +398,252 @@ renderGrid('spiritGrid',SPIRITS,'spirit',function(v){SP=v});
 window.onload=function(){var n=localStorage.getItem('tk_n');if(n){UN=n;CT=localStorage.getItem('tk_c')||'Compañero';SP=localStorage.getItem('tk_s')||'ninguno';openChat()}if('speechSynthesis' in window)speechSynthesis.getVoices()};
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 </script>
+<!-- ════════════════════════════════════════════
+     TUKOMPA · MÚSICA AMBIENTAL 432Hz
+     Web Audio API pura · Sin archivos externos
+     Compatible iOS Safari · Loop perfecto
+     Pegar justo antes de </body>
+════════════════════════════════════════════ -->
+<style>
+  #tk-amb {
+    position: fixed;
+    bottom: 22px;
+    left: 18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(200, 169, 110, 0.18);
+    background: rgba(6, 11, 24, 0.92);
+    color: #c8a96e;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0.35;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: opacity 0.5s ease, box-shadow 0.5s ease, transform 0.2s ease;
+    padding: 0;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+  }
+  #tk-amb:hover  { transform: scale(1.12); }
+  #tk-amb.active { opacity: 0.92; box-shadow: 0 0 18px rgba(200, 169, 110, 0.18); }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── PARÁMETROS ───────────────────────────────────── */
+  var BASE     = 432;          // Hz base (La=432)
+  var VOL      = 0.038;        // volumen máster (subliminal)
+  var BREATH   = 0.062;        // Hz del respiro (~16s por ciclo)
+  var FADE_IN  = 3.2;          // segundos fade entrada
+  var FADE_OUT = 2.8;          // segundos fade salida
+
+  /* Armónicos: frecuencia relativa, ganancia, detune en cents */
+  var VOICES = [
+    { r: 0.5,   g: 0.55, d:  0  },  // sub-octava — fundamento grave
+    { r: 1.0,   g: 1.00, d:  0  },  // fundamental 432Hz
+    { r: 1.0,   g: 0.32, d:  5  },  // coro leve (chorus)
+    { r: 1.5,   g: 0.48, d: -2  },  // quinta justa (648Hz)
+    { r: 2.0,   g: 0.28, d:  0  },  // octava (864Hz)
+    { r: 2.5,   g: 0.17, d:  3  },  // tercera mayor (1080Hz)
+    { r: 3.0,   g: 0.11, d: -4  },  // quinta alta (1296Hz)
+  ];
+
+  /* ── ESTADO ───────────────────────────────────────── */
+  var ctx         = null;
+  var masterGain  = null;
+  var playing     = false;
+  var activated   = false;  // primer gesto recibido
+
+  /* ── REVERB SINTÉTICO ─────────────────────────────── */
+  function makeReverb(dur, decay) {
+    var len = Math.floor(ctx.sampleRate * dur);
+    var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (var c = 0; c < 2; c++) {
+      var data = buf.getChannelData(c);
+      for (var i = 0; i < len; i++) {
+        data[i] = (Math.random() * 2 - 1) *
+                  Math.pow(1 - i / len, decay);
+      }
+    }
+    var node = ctx.createConvolver();
+    node.buffer = buf;
+    return node;
+  }
+
+  /* ── CONSTRUIR EL PAD ─────────────────────────────── */
+  function buildPad() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    ctx = new AC();
+
+    /* Nodo máster (controlado por fades) */
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 0;
+    masterGain.connect(ctx.destination);
+
+    /* Reverb wet */
+    var reverb  = makeReverb(4, 2.4);
+    var wetGain = ctx.createGain();
+    wetGain.gain.value = 0.42;
+    reverb.connect(wetGain);
+    wetGain.connect(masterGain);
+
+    /* Señal seca */
+    var dryGain = ctx.createGain();
+    dryGain.gain.value = 0.58;
+    dryGain.connect(masterGain);
+
+    /* Pad mix — el LFO de respiro actúa aquí */
+    var padMix = ctx.createGain();
+    padMix.gain.value = 1.0;
+    padMix.connect(dryGain);
+    padMix.connect(reverb);
+
+    /* LFO respiración: modula ±22% del pad */
+    var lfo     = ctx.createOscillator();
+    lfo.type            = 'sine';
+    lfo.frequency.value = BREATH;
+    var lfoAmp  = ctx.createGain();
+    lfoAmp.gain.value   = 0.22;
+    lfo.connect(lfoAmp);
+    lfoAmp.connect(padMix.gain);
+    lfo.start();
+
+    /* Osciladores armónicos */
+    VOICES.forEach(function (v) {
+      var osc = ctx.createOscillator();
+      osc.type            = 'sine';
+      osc.frequency.value = BASE * v.r;
+      osc.detune.value    = v.d;
+
+      var vGain = ctx.createGain();
+      vGain.gain.value = v.g;
+
+      /* Micro-drift orgánico: cada voz respira levemente distinto */
+      var drift  = ctx.createOscillator();
+      drift.type = 'sine';
+      drift.frequency.value = 0.018 + Math.random() * 0.055;
+      var dGain  = ctx.createGain();
+      dGain.gain.value = BASE * v.r * 0.0018; // ±0.18% de la freq
+      drift.connect(dGain);
+      dGain.connect(osc.frequency);
+      drift.start();
+
+      osc.connect(vGain);
+      vGain.connect(padMix);
+      osc.start();
+    });
+  }
+
+  /* ── FADE IN ──────────────────────────────────────── */
+  function fadeIn() {
+    if (!ctx) buildPad();
+
+    /* iOS: el resume() DEBE ir dentro del handler de gesto */
+    if (ctx.state === 'suspended') ctx.resume();
+
+    var t = ctx.currentTime;
+    masterGain.gain.cancelScheduledValues(t);
+    masterGain.gain.setValueAtTime(masterGain.gain.value, t);
+    masterGain.gain.linearRampToValueAtTime(VOL, t + FADE_IN);
+
+    playing = true;
+    updateBtn();
+  }
+
+  /* ── FADE OUT ─────────────────────────────────────── */
+  function fadeOut() {
+    var t = ctx.currentTime;
+    masterGain.gain.cancelScheduledValues(t);
+    masterGain.gain.setValueAtTime(masterGain.gain.value, t);
+    masterGain.gain.linearRampToValueAtTime(0, t + FADE_OUT);
+
+    playing = false;
+    updateBtn();
+  }
+
+  /* ── TOGGLE ───────────────────────────────────────── */
+  function toggle() {
+    playing ? fadeOut() : fadeIn();
+  }
+
+  /* ── PRIMER GESTO (auto-activar) ──────────────────── */
+  function onFirstGesture() {
+    if (activated) return;
+    activated = true;
+    fadeIn();
+    document.removeEventListener('touchstart', onFirstGesture, true);
+    document.removeEventListener('click',      onFirstGesture, true);
+  }
+
+  /* ── ÍCONOS SVG ───────────────────────────────────── */
+  var ICON_PLAY  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#c8a96e" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>';
+  var ICON_PAUSE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="#c8a96e" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+
+  /* ── ACTUALIZAR BOTÓN ─────────────────────────────── */
+  function updateBtn() {
+    var btn = document.getElementById('tk-amb');
+    if (!btn) return;
+    btn.innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+    btn.setAttribute('aria-label', playing ? 'Pausar música ambiental' : 'Activar música ambiental');
+    if (playing) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  }
+
+  /* ── INIT DOM ─────────────────────────────────────── */
+  function onDOMReady() {
+    /* Crear botón */
+    var btn = document.createElement('button');
+    btn.id = 'tk-amb';
+    btn.setAttribute('aria-label', 'Activar música ambiental');
+    btn.innerHTML = ICON_PLAY;
+
+    /* El botón maneja su propio primer gesto sin interferir */
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();  // no propaga al listener del documento
+      if (!activated) {
+        activated = true;
+        document.removeEventListener('touchstart', onFirstGesture, true);
+        document.removeEventListener('click',      onFirstGesture, true);
+        fadeIn();
+      } else {
+        toggle();
+      }
+    });
+
+    /* iOS: touchstart en el botón también debe inicializar */
+    btn.addEventListener('touchstart', function (e) {
+      e.stopPropagation();
+    }, { passive: true });
+
+    document.body.appendChild(btn);
+
+    /* Listener global: activa música en cualquier primer toque */
+    document.addEventListener('touchstart', onFirstGesture, { once: true, passive: true, capture: true });
+    document.addEventListener('click',      onFirstGesture, { once: true, capture: true });
+  }
+
+  /* ── ESPERAR DOM ──────────────────────────────────── */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onDOMReady);
+  } else {
+    onDOMReady();
+  }
+
+})();
+</script>
+<!-- ════════════════════════════════════════════
+     FIN · MÚSICA AMBIENTAL TUKOMPA
+════════════════════════════════════════════ -->
 
 </body>
 </html>
