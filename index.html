@@ -8,13 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>TuKompa</title>
 
-  <!-- Fonts -->
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
-
-  <!-- Firebase SDK via CDN (compat — funciona con JS vanilla, sin npm) -->
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 
@@ -53,41 +49,32 @@
     }
 
     .screen {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       transition: opacity 0.4s ease;
     }
     .screen.hidden { opacity: 0; pointer-events: none; }
 
-    /* ── CARGA ── */
+    /* CARGA */
     #screen-loading { background: var(--bg); gap: 16px; }
     .loading-logo {
-      font-family: var(--font-serif);
-      font-size: 44px; font-weight: 300;
-      color: var(--gold);
-      opacity: 0;
-      animation: fadeUp 0.6s ease 0.2s forwards;
+      font-family: var(--font-serif); font-size: 44px; font-weight: 300;
+      color: var(--gold); opacity: 0; animation: fadeUp 0.6s ease 0.2s forwards;
     }
     .loading-dots { display: flex; gap: 6px; opacity: 0; animation: fadeUp 0.4s ease 0.6s forwards; }
     .loading-dots span {
-      width: 6px; height: 6px;
-      background: var(--gold-dim); border-radius: 50%;
-      animation: pulse 1.2s ease infinite;
+      width: 6px; height: 6px; background: var(--gold-dim);
+      border-radius: 50%; animation: pulse 1.2s ease infinite;
     }
     .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
     .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
-    /* ── LOGIN ── */
+    /* LOGIN */
     #screen-login { background: var(--bg); padding: 40px 28px; }
     #screen-login::before {
-      content: '';
-      position: absolute; top: -120px; left: 50%;
-      transform: translateX(-50%);
-      width: 420px; height: 420px;
+      content: ''; position: absolute; top: -120px; left: 50%;
+      transform: translateX(-50%); width: 420px; height: 420px;
       background: radial-gradient(circle, rgba(200,169,110,0.07) 0%, transparent 70%);
       pointer-events: none;
     }
@@ -138,6 +125,7 @@
       content: ''; flex: 1; height: 1px; background: var(--border);
     }
     .login-privacy { font-size: 12px; color: var(--text-dim); text-align: center; line-height: 1.5; }
+
     #login-error {
       font-size: 13px; color: #e07070; text-align: center; display: none;
       padding: 10px 14px; background: rgba(220,70,70,0.08);
@@ -145,7 +133,7 @@
     }
     #login-error.visible { display: block; }
 
-    /* ── CHAT ── */
+    /* CHAT */
     #screen-chat {
       flex-direction: column; justify-content: flex-start;
       background: var(--bg); padding: 0; padding-top: var(--safe-top);
@@ -258,7 +246,7 @@
     }
     #btn-clear:active { opacity: 1; color: var(--gold); }
 
-    @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes pulse { 0%,80%,100%{transform:scale(0.7);opacity:.5} 40%{transform:scale(1);opacity:1} }
     @keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -270,14 +258,10 @@
 </head>
 <body>
 
-  <!-- CARGA INICIAL -->
-
   <div id="screen-loading" class="screen">
     <div class="loading-logo">TuKompa</div>
     <div class="loading-dots"><span></span><span></span><span></span></div>
   </div>
-
-  <!-- LOGIN -->
 
   <div id="screen-login" class="screen hidden">
     <div class="login-logo">TuKompa</div>
@@ -300,8 +284,6 @@
       <p class="login-privacy">Solo usamos tu nombre y correo de Google para personalizar tu experiencia. Nunca compartimos tu información.</p>
     </div>
   </div>
-
-  <!-- CHAT -->
 
   <div id="screen-chat" class="screen hidden">
     <div class="chat-header">
@@ -330,7 +312,7 @@
   </div>
 
   <script>
-    /* ══ FIREBASE CONFIG ══════════════════════════════════ */
+    /* ══ CONFIG ═══════════════════════════════════════════ */
     const firebaseConfig = {
       apiKey:            "AIzaSyCO5hNAkEaFq0Hqs8iBJD1gkVM3hFbpv2g",
       authDomain:        "tukompa-9b4c9.firebaseapp.com",
@@ -349,12 +331,12 @@
     let currentUser         = null;
     let conversationHistory = [];
     let isTyping            = false;
+    let authResolved        = false; // evita parpadeo en iOS
 
-    /* ══ DOM ══════════════════════════════════════════════ */
-    const messagesEl  = document.getElementById('messages');
-    const inputEl     = document.getElementById('user-input');
-    const sendBtn     = document.getElementById('btn-send');
-    const loginError  = document.getElementById('login-error');
+    const messagesEl = document.getElementById('messages');
+    const inputEl    = document.getElementById('user-input');
+    const sendBtn    = document.getElementById('btn-send');
+    const loginError = document.getElementById('login-error');
 
     /* ══ PANTALLAS ════════════════════════════════════════ */
     function showScreen(name) {
@@ -374,10 +356,13 @@
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      // Redirect es obligatorio en iOS Safari — los popups se bloquean
+      // Guardamos una marca antes de redirigir
+      try { sessionStorage.setItem('tk_redirecting', '1'); } catch(e) {}
+
       auth.signInWithRedirect(provider).catch((err) => {
         btn.classList.remove('loading');
         btn.disabled = false;
+        try { sessionStorage.removeItem('tk_redirecting'); } catch(e) {}
         showLoginError('Error al iniciar sesión. Intenta de nuevo.');
         console.error(err);
       });
@@ -397,39 +382,56 @@
       loginError.classList.add('visible');
     }
 
-    // Captura el resultado cuando Google redirige de vuelta a la app
-    auth.getRedirectResult()
-      .then((result) => {
-        if (result && result.user) console.log('Login OK:', result.user.displayName);
-      })
-      .catch((err) => {
-        showScreen('login');
-        if (err.code !== 'auth/no-auth-event') {
-          showLoginError('Hubo un problema. Intenta de nuevo.');
-          console.error(err);
+    /* ══ ARRANQUE: primero intentamos capturar el redirect ═ */
+    async function init() {
+      try {
+        // getRedirectResult primero — captura el resultado de Google
+        const result = await auth.getRedirectResult();
+        if (result && result.user) {
+          // Login via redirect exitoso
+          currentUser = result.user;
+          try { sessionStorage.removeItem('tk_redirecting'); } catch(e) {}
+          await setupChat(currentUser);
+          showScreen('chat');
+          authResolved = true;
+          return;
+        }
+      } catch (err) {
+        console.error('getRedirectResult error:', err.code, err.message);
+        try { sessionStorage.removeItem('tk_redirecting'); } catch(e) {}
+      }
+
+      // Si no hubo redirect, escuchamos el estado de sesión existente
+      auth.onAuthStateChanged(async (user) => {
+        if (authResolved) return; // ya se resolvió arriba
+        authResolved = true;
+
+        if (user) {
+          currentUser = user;
+          await setupChat(user);
+          showScreen('chat');
+        } else {
+          // Solo mostramos login si NO estamos en medio de un redirect
+          let redirecting = false;
+          try { redirecting = sessionStorage.getItem('tk_redirecting') === '1'; } catch(e) {}
+
+          if (!redirecting) {
+            showScreen('login');
+          }
+          // Si redirecting === true, seguimos en pantalla de carga hasta que llegue el resultado
         }
       });
+    }
 
-    // Detecta sesión activa automáticamente al abrir la app
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        currentUser = user;
-        await setupChat(user);
-        showScreen('chat');
-      } else {
-        showScreen('login');
-      }
-    });
+    init();
 
     /* ══ SETUP CHAT ═══════════════════════════════════════ */
     async function setupChat(user) {
       const firstName = user.displayName ? user.displayName.split(' ')[0] : 'Usuario';
       document.getElementById('user-display-name').textContent = firstName;
-
       const avatarEl = document.getElementById('user-avatar');
       if (user.photoURL) { avatarEl.src = user.photoURL; avatarEl.style.display = 'block'; }
       else { avatarEl.style.display = 'none'; }
-
       await loadHistory(user.uid);
       scrollToBottom();
     }
@@ -489,7 +491,7 @@
     function renderMessage(role, content, timestamp, animate = true) {
       const empty = messagesEl.querySelector('.messages-empty');
       if (empty) empty.remove();
-      const div  = document.createElement('div');
+      const div = document.createElement('div');
       div.className = `message ${role}`;
       const time = timestamp
         ? new Date(timestamp).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
@@ -503,11 +505,9 @@
 
     function renderTyping() {
       const div = document.createElement('div');
-      div.id = 'typing-bubble';
-      div.className = 'message assistant';
+      div.id = 'typing-bubble'; div.className = 'message assistant';
       div.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
-      messagesEl.appendChild(div);
-      scrollToBottom();
+      messagesEl.appendChild(div); scrollToBottom();
     }
 
     function removeTyping() {
@@ -528,14 +528,11 @@
       const text = inputEl.value.trim();
       if (!text || isTyping || !currentUser) return;
 
-      isTyping = true;
-      sendBtn.disabled = true;
-      inputEl.value = '';
-      inputEl.style.height = 'auto';
+      isTyping = true; sendBtn.disabled = true;
+      inputEl.value = ''; inputEl.style.height = 'auto';
 
       const ts = Date.now();
-      renderMessage('user', text, ts);
-      scrollToBottom();
+      renderMessage('user', text, ts); scrollToBottom();
       conversationHistory.push({ role: 'user', content: text, timestamp: ts });
       renderTyping();
 
@@ -560,20 +557,16 @@
 
         removeTyping();
         const replyTs = Date.now();
-        renderMessage('assistant', reply, replyTs);
-        scrollToBottom();
+        renderMessage('assistant', reply, replyTs); scrollToBottom();
         conversationHistory.push({ role: 'assistant', content: reply, timestamp: replyTs });
         await saveHistory();
 
       } catch (err) {
         removeTyping();
         renderMessage('assistant', 'Hubo un error al conectar. Intenta de nuevo en un momento.', Date.now());
-        scrollToBottom();
-        console.error(err);
+        scrollToBottom(); console.error(err);
       } finally {
-        isTyping = false;
-        sendBtn.disabled = false;
-        inputEl.focus();
+        isTyping = false; sendBtn.disabled = false; inputEl.focus();
       }
     }
 
@@ -587,7 +580,6 @@
     });
     inputEl.addEventListener('focus', () => setTimeout(() => scrollToBottom(), 350));
 
-    // Compensa el teclado de iOS
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', () => {
         const offset = window.innerHeight - window.visualViewport.height;
