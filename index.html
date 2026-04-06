@@ -286,7 +286,6 @@
   </div>
 
   <script>
-    /* ══ CONFIG ═══════════════════════════════════════════ */
     const GOOGLE_CLIENT_ID = '66913833177-17h1hc0erpgjs3bj88rjkc62ce5566ar.apps.googleusercontent.com';
     const REDIRECT_URI     = 'https://tukompa.app';
 
@@ -304,16 +303,10 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    /* ══ CAPTURAR TOKEN DE GOOGLE EN LA URL ═══════════════
-       Cuando Google redirige de vuelta a tukompa.app, el
-       access_token viene en el hash de la URL: #access_token=xxx
-       Lo capturamos ANTES de que se borre al navegar.
-    ══════════════════════════════════════════════════════ */
-    const urlHash   = new URLSearchParams(window.location.hash.replace('#', '?'));
+    /* Capturar token de Google en la URL ANTES de cualquier otra cosa */
+    const urlHash    = new URLSearchParams(window.location.hash.replace('#', '?'));
     const oauthToken = urlHash.get('access_token');
-
     if (oauthToken) {
-      // Limpiar el token de la URL inmediatamente
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -326,7 +319,7 @@
     const sendBtn    = document.getElementById('btn-send');
     const loginError = document.getElementById('login-error');
 
-    /* ══ localStorage ═════════════════════════════════════ */
+    /* ══ localStorage — persiste aunque se cierre Safari ═ */
     function saveUserLocal(user) {
       localStorage.setItem('tk_user', JSON.stringify({
         uid:         user.uid,
@@ -358,45 +351,43 @@
     /* ══ ARRANQUE ═════════════════════════════════════════ */
     async function init() {
 
-      /* CASO 1: Venimos de Google con un access_token en la URL */
+      /* CASO 1: Venimos de Google con access_token en la URL */
       if (oauthToken) {
         try {
           const credential = firebase.auth.GoogleAuthProvider.credential(null, oauthToken);
           const result     = await auth.signInWithCredential(credential);
           saveUserLocal(result.user);
-          currentUser = result.user;
-          await setupChat(result.user);
-          showScreen('chat');
+          await enterChat(result.user);
           return;
         } catch(err) {
           console.error('signInWithCredential:', err);
+          clearUserLocal();
           showLoginError('Error al iniciar sesión. Intenta de nuevo.');
           showScreen('login');
           return;
         }
       }
 
-      /* CASO 2: Hay sesión guardada en localStorage → entrada directa */
+      /* CASO 2: Sesión guardada en localStorage → entrada directa sin pasar por Google */
       const localUser = loadUserLocal();
       if (localUser) {
-        currentUser = localUser;
-        await setupChat(localUser);
-        showScreen('chat');
+        await enterChat(localUser);
         return;
       }
 
-      /* CASO 3: Sin sesión → mostrar login */
+      /* CASO 3: Sin sesión → login */
       showScreen('login');
     }
 
     init();
 
-    /* ══ SIGN IN — Google OAuth directo ═══════════════════
-       Redirige a Google OAuth con response_type=token.
-       Google devuelve el access_token en el hash de la URL.
-       SIN Firebase redirect, SIN cookies de terceros.
-       Funciona perfectamente en iOS Safari.
-    ══════════════════════════════════════════════════════ */
+    async function enterChat(user) {
+      currentUser = user;
+      await setupChat(user);
+      showScreen('chat');
+    }
+
+    /* ══ SIGN IN ══════════════════════════════════════════ */
     function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
       btn.classList.add('loading');
@@ -549,13 +540,15 @@
         });
         if (!res.ok) throw new Error(`API ${res.status}`);
         const data  = await res.json();
-        const reply = data.reply || data.message || data.content || 'Sin respuesta';
+        const reply = data.reply || data.message || data.content || '';
 
         removeTyping();
-        const replyTs = Date.now();
-        renderMessage('assistant', reply, replyTs); scrollToBottom();
-        conversationHistory.push({ role: 'assistant', content: reply, timestamp: replyTs });
-        await saveHistory();
+        if (reply) {
+          const replyTs = Date.now();
+          renderMessage('assistant', reply, replyTs); scrollToBottom();
+          conversationHistory.push({ role: 'assistant', content: reply, timestamp: replyTs });
+          await saveHistory();
+        }
 
       } catch (err) {
         removeTyping();
