@@ -311,8 +311,7 @@
     const inputEl    = document.getElementById('user-input');
     const sendBtn    = document.getElementById('btn-send');
     const loginError = document.getElementById('login-error');
-
-    const LS_KEY = 'tk_pending_redirect'; // localStorage key
+    const LS_KEY     = 'tk_pending_redirect';
 
     function showScreen(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -324,45 +323,24 @@
       loginError.classList.add('visible');
     }
 
-    /* ══════════════════════════════════════════════════════
-       ARRANQUE
-       Secuencia correcta para iOS Safari:
-       1. Limpiar cualquier estado anterior
-       2. Llamar getRedirectResult() PRIMERO y esperar
-       3. Si hay usuario → chat
-       4. Si no hay resultado de redirect → onAuthStateChanged decide
-       5. localStorage persiste a través del redirect (a diferencia de sessionStorage)
-    ══════════════════════════════════════════════════════ */
+    /* ══ ARRANQUE ═════════════════════════════════════════ */
     async function init() {
       try {
-        // ¿Venimos de un redirect de Google?
-        const pendingRedirect = localStorage.getItem(LS_KEY);
-
         const result = await auth.getRedirectResult();
-        localStorage.removeItem(LS_KEY); // limpiar siempre
+        localStorage.removeItem(LS_KEY);
 
         if (result && result.user) {
-          // Login via redirect exitoso
           await enterChat(result.user);
           return;
         }
 
-        if (pendingRedirect) {
-          // Veníamos de redirect pero no hay resultado — algo falló
-          // Esperar a onAuthStateChanged por si el usuario ya estaba logeado
-        }
-
-        // Escuchar estado de sesión existente
         auth.onAuthStateChanged(async (user) => {
-          if (user) {
-            await enterChat(user);
-          } else {
-            showScreen('login');
-          }
+          if (user) { await enterChat(user); }
+          else { showScreen('login'); }
         });
 
       } catch (err) {
-        console.error('init error:', err);
+        console.error('init:', err);
         localStorage.removeItem(LS_KEY);
         auth.onAuthStateChanged(async (user) => {
           if (user) { await enterChat(user); }
@@ -379,7 +357,7 @@
       showScreen('chat');
     }
 
-    /* ══ SIGN IN ══════════════════════════════════════════ */
+    /* ══ AUTH ═════════════════════════════════════════════ */
     function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
       btn.classList.add('loading');
@@ -391,7 +369,6 @@
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      // Marcar ANTES de redirigir — localStorage persiste entre páginas en iOS Safari
       localStorage.setItem(LS_KEY, '1');
 
       auth.signInWithRedirect(provider).catch(err => {
@@ -403,13 +380,11 @@
       });
     }
 
+    /* ── Al salir: limpiar y recargar página completamente ── */
     function signOut() {
       auth.signOut().then(() => {
-        currentUser = null;
-        conversationHistory = [];
-        messagesEl.innerHTML = '';
         localStorage.removeItem(LS_KEY);
-        showScreen('login');
+        window.location.reload(); // recarga limpia — resuelve todos los problemas de estado
       });
     }
 
