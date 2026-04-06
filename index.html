@@ -12,12 +12,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
 
-  <!-- Google Identity Services — sin redirect, sin cookies, funciona en iOS Safari -->
-
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-  <!-- Firebase SDK -->
-
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -53,7 +47,6 @@
     }
     .screen.hidden { opacity: 0; pointer-events: none; }
 
-    /* CARGA */
     #screen-loading { background: var(--bg); gap: 16px; }
     .loading-logo {
       font-family: var(--font-serif); font-size: 44px; font-weight: 300;
@@ -67,7 +60,6 @@
     .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
     .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
-    /* LOGIN */
     #screen-login { background: var(--bg); padding: 40px 28px; }
     #screen-login::before {
       content: ''; position: absolute; top: -120px; left: 50%;
@@ -93,7 +85,6 @@
       color: var(--text); text-align: center;
     }
     .login-card > p { font-size: 14px; color: var(--text-dim); text-align: center; line-height: 1.6; }
-
     #btn-google {
       display: flex; align-items: center; justify-content: center; gap: 12px;
       width: 100%; padding: 14px 20px; background: transparent;
@@ -103,7 +94,6 @@
       transition: background 0.2s, box-shadow 0.2s; -webkit-tap-highlight-color: transparent;
     }
     #btn-google:active { background: var(--gold-glow); box-shadow: 0 0 20px var(--gold-glow); }
-    #btn-google:disabled { opacity: 0.6; }
     #btn-google .btn-spinner {
       width: 18px; height: 18px; border: 2px solid var(--gold-dim);
       border-top-color: var(--gold); border-radius: 50%;
@@ -112,7 +102,6 @@
     #btn-google.loading .btn-spinner { display: block; }
     #btn-google.loading .btn-icon,
     #btn-google.loading .btn-label { display: none; }
-
     .login-divider {
       display: flex; align-items: center; gap: 12px;
       color: var(--text-dim); font-size: 12px; letter-spacing: 0.05em;
@@ -128,7 +117,6 @@
     }
     #login-error.visible { display: block; }
 
-    /* CHAT */
     #screen-chat {
       flex-direction: column; justify-content: flex-start;
       background: var(--bg); padding: 0; padding-top: var(--safe-top);
@@ -298,9 +286,6 @@
   </div>
 
   <script>
-    /* ══ CONFIGURACIÓN ════════════════════════════════════ */
-    const GOOGLE_CLIENT_ID = '66913833177-17h1hc0erpgjs3bj88rjkc62ce5566ar.apps.googleusercontent.com';
-
     const firebaseConfig = {
       apiKey:            "AIzaSyCO5hNAkEaFq0Hqs8iBJD1gkVM3hFbpv2g",
       authDomain:        "tukompa-9b4c9.firebaseapp.com",
@@ -324,6 +309,33 @@
     const sendBtn    = document.getElementById('btn-send');
     const loginError = document.getElementById('login-error');
 
+    /* ══ CLAVE: guardamos el usuario en localStorage ══════
+       Esto permite que en iOS Safari, aunque Firebase pierda
+       la sesión entre páginas, nosotros recordemos al usuario.
+    ══════════════════════════════════════════════════════ */
+    const LS_USER = 'tk_user';
+
+    function saveUserLocal(user) {
+      localStorage.setItem(LS_USER, JSON.stringify({
+        uid:         user.uid,
+        displayName: user.displayName || '',
+        email:       user.email || '',
+        photoURL:    user.photoURL || ''
+      }));
+    }
+
+    function loadUserLocal() {
+      try {
+        const raw = localStorage.getItem(LS_USER);
+        return raw ? JSON.parse(raw) : null;
+      } catch(e) { return null; }
+    }
+
+    function clearUserLocal() {
+      localStorage.removeItem(LS_USER);
+      localStorage.removeItem('tk_pending_redirect');
+    }
+
     function showScreen(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       document.getElementById('screen-' + name).classList.remove('hidden');
@@ -335,90 +347,92 @@
     }
 
     /* ══ ARRANQUE ═════════════════════════════════════════
-       Verificar si hay sesión activa en Firebase.
-       Si hay → entrar al chat directo.
-       Si no → mostrar login.
+       1. ¿Hay usuario guardado en localStorage? → entrar directo
+       2. Si no → esperar a Firebase onAuthStateChanged
+       3. getRedirectResult captura el login tras redirect de Google
     ══════════════════════════════════════════════════════ */
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        await enterChat(user);
-      } else {
-        showScreen('login');
-      }
-    });
+    async function init() {
+      // Paso 1: usuario guardado localmente → entrada instantánea
+      const localUser = loadUserLocal();
+      if (localUser) {
+        currentUser = localUser;
+        await setupChat(localUser);
+        showScreen('chat');
 
-    /* ══ LOGIN CON GOOGLE IDENTITY SERVICES ═══════════════
-       Este método NO usa redirect ni cookies de terceros.
-       Abre un selector de cuenta de Google como overlay
-       sobre la misma página — funciona perfecto en iOS Safari.
-    ══════════════════════════════════════════════════════ */
+        // Verificar silenciosamente con Firebase en background
+        auth.onAuthStateChanged(async (fbUser) => {
+          if (fbUser) {
+            currentUser = fbUser;
+            saveUserLocal(fbUser);
+          } else {
+            // Firebase no reconoce la sesión — intentar capturar redirect
+            try {
+              const result = await auth.getRedirectResult();
+              if (result && result.user) {
+                currentUser = result.user;
+                saveUserLocal(result.user);
+              }
+            } catch(e) {}
+          }
+        });
+        return;
+      }
+
+      // Paso 2: no hay usuario local → intentar capturar redirect de Google
+      try {
+        const result = await auth.getRedirectResult();
+        if (result && result.user) {
+          saveUserLocal(result.user);
+          currentUser = result.user;
+          await setupChat(result.user);
+          showScreen('chat');
+          return;
+        }
+      } catch(e) {
+        console.error('getRedirectResult:', e.code);
+      }
+
+      // Paso 3: escuchar estado de Firebase
+      auth.onAuthStateChanged(async (user) => {
+        if (user) {
+          saveUserLocal(user);
+          currentUser = user;
+          await setupChat(user);
+          showScreen('chat');
+        } else {
+          showScreen('login');
+        }
+      });
+    }
+
+    init();
+
+    /* ══ SIGN IN ══════════════════════════════════════════ */
     function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
       btn.classList.add('loading');
       btn.disabled = true;
       loginError.classList.remove('visible');
 
-      // Esperar a que Google Identity Services esté listo
-      if (typeof google === 'undefined' || !google.accounts) {
-        setTimeout(signInWithGoogle, 500);
-        return;
-      }
+      const provider = new firebase.auth.GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
+      provider.setCustomParameters({ prompt: 'select_account' });
 
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback:  handleGoogleCredential,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        ux_mode: 'popup', // overlay — no sale de la página
-      });
-
-      google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // El prompt no se mostró — usar botón de One Tap alternativo
-          google.accounts.id.renderButton(
-            document.getElementById('btn-google'),
-            { theme: 'outline', size: 'large', width: 300 }
-          );
-          btn.classList.remove('loading');
-          btn.disabled = false;
-        }
-      });
-    }
-
-    /* Callback cuando Google devuelve el token JWT */
-    async function handleGoogleCredential(response) {
-      const btn = document.getElementById('btn-google');
-      try {
-        btn.classList.add('loading');
-        btn.disabled = true;
-
-        // Convertir el token de Google en credencial de Firebase
-        const credential = firebase.auth.GoogleAuthProvider.credential(response.credential);
-        const result = await auth.signInWithCredential(credential);
-        // onAuthStateChanged se encarga del resto
-      } catch (err) {
+      localStorage.setItem('tk_pending_redirect', '1');
+      auth.signInWithRedirect(provider).catch(err => {
+        localStorage.removeItem('tk_pending_redirect');
         btn.classList.remove('loading');
         btn.disabled = false;
         showLoginError('Error al iniciar sesión. Intenta de nuevo.');
-        console.error('handleGoogleCredential:', err);
-      }
+        console.error(err);
+      });
     }
 
     /* ══ SIGN OUT ═════════════════════════════════════════ */
     function signOut() {
-      if (typeof google !== 'undefined' && google.accounts) {
-        google.accounts.id.disableAutoSelect();
-      }
-      auth.signOut().then(() => {
-        window.location.reload();
-      });
-    }
-
-    /* ══ ENTER CHAT ═══════════════════════════════════════ */
-    async function enterChat(user) {
-      currentUser = user;
-      await setupChat(user);
-      showScreen('chat');
+      clearUserLocal();
+      auth.signOut().then(() => window.location.reload());
     }
 
     /* ══ SETUP CHAT ═══════════════════════════════════════ */
