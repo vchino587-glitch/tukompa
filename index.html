@@ -359,7 +359,25 @@ if(['triste','mal','dolor'].some(function(w){return l.includes(w)}))return'Eso p
 var d=[n+', te escucho.','Estoy acá, '+n+'.','Seguí, '+n+'.'];return d[Math.floor(Math.random()*d.length)]}
 
 // ═══ VOICE ═══
-function speak(t){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang='es-AR';var vc=VOICES[CT]||{r:.9,p:1};u.rate=vc.r;u.pitch=vc.p;var v=speechSynthesis.getVoices().find(function(x){return x.lang.startsWith('es')});if(v)u.voice=v;speechSynthesis.speak(u)}
+function speak(t){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(t);
+  u.lang='es-AR';
+  var vc=VOICES[CT]||{r:.9,p:1};
+  u.rate=vc.r;u.pitch=vc.p;
+  var v=speechSynthesis.getVoices().find(function(x){return x.lang.startsWith('es')});
+  if(v)u.voice=v;
+  // Duck: bajar música mientras habla
+  var ambBtn=document.getElementById('tk-amb');
+  if(ambBtn&&ambBtn.classList.contains('on')&&window._tkMaster){
+    window._tkMaster.gain.setTargetAtTime(0.02,window._tkCtx.currentTime,0.3);
+    u.onend=function(){
+      window._tkMaster.gain.setTargetAtTime(0.12,window._tkCtx.currentTime,0.8);
+    };
+  }
+  speechSynthesis.speak(u);
+}
 function toggleMic(){var S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S)return;if(LISTENING){if(REC)REC.stop();return}var s=getXP();s.voice=true;setXP(s);
 REC=new S();REC.lang='es-AR';REC.interimResults=true;REC.onresult=function(e){document.getElementById('chatInput').value=Array.from(e.results).map(function(r){return r[0].transcript}).join('');updateSend()};REC.onend=function(){LISTENING=false;updateMic();if(document.getElementById('chatInput').value.trim())setTimeout(sendMsg,500)};REC.onerror=function(){LISTENING=false;updateMic()};REC.start();LISTENING=true;updateMic()}
 function updateMic(){var b=document.getElementById('micBtn');b.className=LISTENING?'foot-btn btn-mic recording':'foot-btn btn-mic';document.getElementById('micIcon').innerHTML=LISTENING?'<span class="mic-waves"><span></span><span></span><span></span><span></span><span></span></span>':'🎙️'}
@@ -483,6 +501,9 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
     /* Cadena: comp → master → destino */
     comp.connect(master);
     master.connect(ctx.destination);
+    // Exponer para audio ducking desde speak()
+    window._tkMaster=master;
+    window._tkCtx=ctx;
 
     /* ── BINAURAL THETA (L/R separados) ── */
     var merger=ctx.createChannelMerger(2);
@@ -524,10 +545,10 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
       o.start(0);
     }
 
-    monoOsc(40,  0.18, 0.07,  0.03);  /* Sub-bass: presencia, contención */
-    monoOsc(174, 0.22, 0.09,  0.025); /* Seguridad del sistema nervioso  */
-    monoOsc(528, 0.18, 0.11,  0.02);  /* Coherencia cardíaca             */
-    monoOsc(864, 0.10, 0.13,  0.012); /* Octava alta, apertura           */
+    monoOsc(40,  0.08, 0.07,  0.01);
+    monoOsc(174, 0.10, 0.09,  0.01);
+    monoOsc(528, 0.08, 0.11,  0.008);
+    monoOsc(864, 0.04, 0.13,  0.005);
   }
 
   btn.addEventListener('click', async function(){
