@@ -327,17 +327,18 @@
     }
 
     /* ══════════════════════════════════════════════════════
-       AUTH — estrategia robusta para iOS Safari:
-       1. Intentar getRedirectResult (viene de Google)
-       2. Si hay usuario → chat
-       3. Si no → onAuthStateChanged decide
-       4. Timeout de seguridad: si en 8s no pasa nada → login
+       AUTH
+       - onAuthStateChanged es la única fuente de verdad
+       - signInWithPopup primero (funciona en iOS Safari desde gesto directo)
+       - Si el popup falla → signInWithRedirect como fallback
+       - Timeout de 6s por si Firebase tarda mucho en responder
     ══════════════════════════════════════════════════════ */
-    let authDone = false;
+
+    let authResolved = false;
 
     function resolveAuth(user) {
-      if (authDone) return;
-      authDone = true;
+      if (authResolved) return;
+      authResolved = true;
       if (user) {
         currentUser = user;
         setupChat(user).then(() => showScreen('chat'));
@@ -346,34 +347,14 @@
       }
     }
 
-    // Timeout de seguridad — nunca quedarse colgado en la pantalla de carga
-    setTimeout(() => {
-      if (!authDone) {
-        console.warn('Auth timeout — mostrando login');
-        resolveAuth(null);
-      }
-    }, 8000);
+    // Timeout de seguridad: nunca quedarse en pantalla de carga
+    setTimeout(() => { if (!authResolved) resolveAuth(null); }, 6000);
 
-    // Paso 1: capturar redirect de Google
-    auth.getRedirectResult()
-      .then(result => {
-        if (result && result.user) {
-          resolveAuth(result.user);
-        }
-        // Si no hay resultado de redirect, onAuthStateChanged se encarga
-      })
-      .catch(err => {
-        console.error('getRedirectResult:', err.code);
-        // No mostramos error aquí — puede ser simplemente que no hubo redirect
-      });
+    // Escucha el estado de sesión — única fuente de verdad
+    auth.onAuthStateChanged(user => resolveAuth(user));
 
-    // Paso 2: estado de sesión existente
-    auth.onAuthStateChanged(user => {
-      resolveAuth(user); // si ya se resolvió arriba, esta llamada es ignorada
-    });
-
-    /* ══ SIGN IN ══════════════════════════════════════════ */
-    function signInWithGoogle() {
+    /* ══ SIGN IN: popup → fallback redirect ══════════════ */
+    async function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
       btn.classList.add('loading');
       btn.disabled = true;
@@ -384,21 +365,54 @@
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      auth.signInWithRedirect(provider).catch(err => {
-        btn.classList.remove('loading');
-        btn.disabled = false;
-        showLoginError('Error al iniciar sesión. Intenta de nuevo.');
-        console.error(err);
-      });
+      try {
+        // Popup — debe llamarse directo desde el gesto del usuario (sin await previo)
+        const result = await auth.signInWithPopup(provider);
+        // Si llega aquí, el popup funcionó — onAuthStateChanged se encarga del resto
+      } catch (err) {
+        console.warn('Popup falló, usando redirect:', err.code);
+
+        // Códigos que indican que el popup fue bloqueado o no soportado
+        const useRedirect = [
+          'auth/popup-blocked',
+          'auth/popup-closed-by-user',
+          'auth/cancelled-popup-request',
+          'auth/operation-not-supported-in-this-environment'
+        ].includes(err.code);
+
+        if (useRedirect) {
+          // Fallback: redirect completo
+          try {
+            await auth.signInWithRedirect(provider);
+          } catch (redirectErr) {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            showLoginError('Error al iniciar sesión. Intenta de nuevo.');
+            console.error(redirectErr);
+          }
+        } else if (err.code !== 'auth/popup-closed-by-user') {
+          // El usuario cerró el popup — no es error real
+          btn.classList.remove('loading');
+          btn.disabled = false;
+          showLoginError('Hubo un problema. Intenta de nuevo.');
+        } else {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }
+      }
     }
 
     function signOut() {
       auth.signOut().then(() => {
-        authDone = false;
+        authResolved = false;
         currentUser = null;
         conversationHistory = [];
         messagesEl.innerHTML = '';
         showScreen('login');
+        // Rearmar el listener para la próxima sesión
+        setTimeout(() => {
+          auth.onAuthStateChanged(user => resolveAuth(user));
+        }, 100);
       });
     }
 
