@@ -35,14 +35,12 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --safe-top:    env(safe-area-inset-top, 0px);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       height: 100%; background: var(--bg); color: var(--text);
       font-family: var(--font-sans); font-size: 16px;
       -webkit-font-smoothing: antialiased; overflow: hidden;
     }
-
     .screen {
       position: fixed; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; transition: opacity 0.4s ease;
@@ -89,7 +87,6 @@
       color: var(--text); text-align: center;
     }
     .login-card > p { font-size: 14px; color: var(--text-dim); text-align: center; line-height: 1.6; }
-
     #btn-google {
       display: flex; align-items: center; justify-content: center; gap: 12px;
       width: 100%; padding: 14px 20px; background: transparent;
@@ -107,7 +104,6 @@
     #btn-google.loading .btn-spinner { display: block; }
     #btn-google.loading .btn-icon,
     #btn-google.loading .btn-label { display: none; }
-
     .login-divider {
       display: flex; align-items: center; gap: 12px;
       color: var(--text-dim); font-size: 12px; letter-spacing: 0.05em;
@@ -153,7 +149,6 @@
       font-size: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
     #btn-logout:active { color: var(--gold); border-color: var(--gold-dim); }
-
     #messages {
       flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 16px;
       display: flex; flex-direction: column; gap: 14px;
@@ -169,7 +164,6 @@
       font-family: var(--font-serif); font-weight: 400; font-size: 22px; color: var(--text);
     }
     .messages-empty p { font-size: 14px; line-height: 1.6; max-width: 280px; }
-
     .message { display: flex; flex-direction: column; max-width: 85%; animation: msgIn 0.25s ease; }
     .message.user      { align-self: flex-end;   align-items: flex-end; }
     .message.assistant { align-self: flex-start; align-items: flex-start; }
@@ -185,7 +179,6 @@
       border: 1px solid var(--border); border-bottom-left-radius: 4px;
     }
     .message-meta { font-size: 11px; color: var(--text-dim); margin-top: 4px; padding: 0 4px; }
-
     .typing-indicator {
       display: flex; align-items: center; gap: 5px; padding: 12px 16px;
       background: var(--bg3); border: 1px solid var(--border);
@@ -197,7 +190,6 @@
     }
     .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
     .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
     .chat-input-area {
       width: 100%; padding: 12px 14px;
       padding-bottom: calc(12px + var(--safe-bottom));
@@ -223,7 +215,6 @@
     #btn-send:active { transform: scale(0.92); }
     #btn-send:disabled { opacity: 0.4; }
     #btn-send svg { color: #060B18; }
-
     .chat-actions { display: flex; justify-content: center; padding: 6px 0 0; }
     #btn-clear {
       background: transparent; border: none; color: var(--text-dim);
@@ -321,40 +312,75 @@
     const sendBtn    = document.getElementById('btn-send');
     const loginError = document.getElementById('login-error');
 
+    const LS_KEY = 'tk_pending_redirect'; // localStorage key
+
     function showScreen(name) {
       document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
       document.getElementById('screen-' + name).classList.remove('hidden');
     }
 
+    function showLoginError(msg) {
+      loginError.textContent = msg;
+      loginError.classList.add('visible');
+    }
+
     /* ══════════════════════════════════════════════════════
-       AUTH
-       - onAuthStateChanged es la única fuente de verdad
-       - signInWithPopup primero (funciona en iOS Safari desde gesto directo)
-       - Si el popup falla → signInWithRedirect como fallback
-       - Timeout de 6s por si Firebase tarda mucho en responder
+       ARRANQUE
+       Secuencia correcta para iOS Safari:
+       1. Limpiar cualquier estado anterior
+       2. Llamar getRedirectResult() PRIMERO y esperar
+       3. Si hay usuario → chat
+       4. Si no hay resultado de redirect → onAuthStateChanged decide
+       5. localStorage persiste a través del redirect (a diferencia de sessionStorage)
     ══════════════════════════════════════════════════════ */
+    async function init() {
+      try {
+        // ¿Venimos de un redirect de Google?
+        const pendingRedirect = localStorage.getItem(LS_KEY);
 
-    let authResolved = false;
+        const result = await auth.getRedirectResult();
+        localStorage.removeItem(LS_KEY); // limpiar siempre
 
-    function resolveAuth(user) {
-      if (authResolved) return;
-      authResolved = true;
-      if (user) {
-        currentUser = user;
-        setupChat(user).then(() => showScreen('chat'));
-      } else {
-        showScreen('login');
+        if (result && result.user) {
+          // Login via redirect exitoso
+          await enterChat(result.user);
+          return;
+        }
+
+        if (pendingRedirect) {
+          // Veníamos de redirect pero no hay resultado — algo falló
+          // Esperar a onAuthStateChanged por si el usuario ya estaba logeado
+        }
+
+        // Escuchar estado de sesión existente
+        auth.onAuthStateChanged(async (user) => {
+          if (user) {
+            await enterChat(user);
+          } else {
+            showScreen('login');
+          }
+        });
+
+      } catch (err) {
+        console.error('init error:', err);
+        localStorage.removeItem(LS_KEY);
+        auth.onAuthStateChanged(async (user) => {
+          if (user) { await enterChat(user); }
+          else { showScreen('login'); }
+        });
       }
     }
 
-    // Timeout de seguridad: nunca quedarse en pantalla de carga
-    setTimeout(() => { if (!authResolved) resolveAuth(null); }, 6000);
+    init();
 
-    // Escucha el estado de sesión — única fuente de verdad
-    auth.onAuthStateChanged(user => resolveAuth(user));
+    async function enterChat(user) {
+      currentUser = user;
+      await setupChat(user);
+      showScreen('chat');
+    }
 
-    /* ══ SIGN IN: popup → fallback redirect ══════════════ */
-    async function signInWithGoogle() {
+    /* ══ SIGN IN ══════════════════════════════════════════ */
+    function signInWithGoogle() {
       const btn = document.getElementById('btn-google');
       btn.classList.add('loading');
       btn.disabled = true;
@@ -365,60 +391,26 @@
       provider.addScope('email');
       provider.setCustomParameters({ prompt: 'select_account' });
 
-      try {
-        // Popup — debe llamarse directo desde el gesto del usuario (sin await previo)
-        const result = await auth.signInWithPopup(provider);
-        // Si llega aquí, el popup funcionó — onAuthStateChanged se encarga del resto
-      } catch (err) {
-        console.warn('Popup falló, usando redirect:', err.code);
+      // Marcar ANTES de redirigir — localStorage persiste entre páginas en iOS Safari
+      localStorage.setItem(LS_KEY, '1');
 
-        // Códigos que indican que el popup fue bloqueado o no soportado
-        const useRedirect = [
-          'auth/popup-blocked',
-          'auth/popup-closed-by-user',
-          'auth/cancelled-popup-request',
-          'auth/operation-not-supported-in-this-environment'
-        ].includes(err.code);
-
-        if (useRedirect) {
-          // Fallback: redirect completo
-          try {
-            await auth.signInWithRedirect(provider);
-          } catch (redirectErr) {
-            btn.classList.remove('loading');
-            btn.disabled = false;
-            showLoginError('Error al iniciar sesión. Intenta de nuevo.');
-            console.error(redirectErr);
-          }
-        } else if (err.code !== 'auth/popup-closed-by-user') {
-          // El usuario cerró el popup — no es error real
-          btn.classList.remove('loading');
-          btn.disabled = false;
-          showLoginError('Hubo un problema. Intenta de nuevo.');
-        } else {
-          btn.classList.remove('loading');
-          btn.disabled = false;
-        }
-      }
+      auth.signInWithRedirect(provider).catch(err => {
+        localStorage.removeItem(LS_KEY);
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        showLoginError('Error al iniciar sesión. Intenta de nuevo.');
+        console.error(err);
+      });
     }
 
     function signOut() {
       auth.signOut().then(() => {
-        authResolved = false;
         currentUser = null;
         conversationHistory = [];
         messagesEl.innerHTML = '';
+        localStorage.removeItem(LS_KEY);
         showScreen('login');
-        // Rearmar el listener para la próxima sesión
-        setTimeout(() => {
-          auth.onAuthStateChanged(user => resolveAuth(user));
-        }, 100);
       });
-    }
-
-    function showLoginError(msg) {
-      loginError.textContent = msg;
-      loginError.classList.add('visible');
     }
 
     /* ══ SETUP CHAT ═══════════════════════════════════════ */
@@ -548,7 +540,6 @@
             userName: currentUser.displayName || 'Usuario'
           })
         });
-
         if (!res.ok) throw new Error(`API ${res.status}`);
         const data  = await res.json();
         const reply = data.reply || data.message || data.content || 'Sin respuesta';
