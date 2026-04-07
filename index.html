@@ -500,9 +500,19 @@ function loadState() {
     if (!raw) return;
     const p = JSON.parse(raw);
     Object.assign(S, p);
-    S.messages = Array.isArray(S.messages) ? S.messages.slice(-20) : [];
-    S.badges   = Array.isArray(S.badges)   ? S.badges   : [];
-  } catch(e) {}
+    S.badges = Array.isArray(S.badges) ? S.badges : [];
+
+    // Reparar historial corrupto: eliminar mensajes consecutivos del mismo rol
+    const msgs = Array.isArray(p.messages) ? p.messages : [];
+    const clean = [];
+    for (const m of msgs) {
+      if (!m || !m.role || !m.content) continue;
+      const prev = clean[clean.length - 1];
+      if (prev && prev.role === m.role) continue;
+      clean.push(m);
+    }
+    S.messages = clean.slice(-20);
+  } catch(e) { S.messages = []; S.badges = []; }
 }
 function saveState() {
   try {
@@ -777,6 +787,9 @@ async function sendMessage() {
     saveState();
   } catch(err) {
     hideTyping();
+    // CRÍTICO: remover el mensaje del usuario del historial para no
+    // acumular mensajes consecutivos del mismo rol (rompe la API)
+    S.messages.pop();
     const fb=getFallback();
     appendMsg('assistant',fb);
     speakText(fb);
