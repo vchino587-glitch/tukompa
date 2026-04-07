@@ -720,22 +720,25 @@ async function sendMessage() {
 
 async function callAPI() {
   const now = new Date();
-  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const days = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
   const userTime = {hour:now.getHours(),dayName:days[now.getDay()],isWeekend:[0,6].includes(now.getDay())};
 
-  /* ── Sistema Néctar: system prompt construido en el frontend ── */
-  const systemPrompt = NECTAR.buildSystem(S.companionType, S.spiritualPath, S.userName, userTime);
+  const nectarInstrucciones = NECTAR.buildSystem(S.companionType, S.spiritualPath, S.userName, userTime);
+  const mensajesConNectar = [
+    { role: 'user', content: 'INSTRUCCIONES (aplicar siempre):\n' + nectarInstrucciones },
+    { role: 'assistant', content: 'Entendido. Soy TuKompa y aplicare todas estas instrucciones.' },
+    ...S.messages.slice(-18)
+  ];
 
   const res = await fetch('/api/chat', {
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      messages: S.messages.slice(-20),
+      messages: mensajesConNectar,
       companionType: S.companionType,
       spiritualPath: S.spiritualPath,
       userName: S.userName,
-      userTime: userTime,
-      systemPrompt: systemPrompt
+      userTime: userTime
     })
   });
   if (!res.ok) { const e=await res.text().catch(()=>res.status); throw new Error('HTTP '+res.status+': '+e); }
