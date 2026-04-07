@@ -12,12 +12,10 @@ const { messages, companionType, spiritualPath, userName, userTime } = req.body;
 ```
 const systemPrompt = buildSystemPrompt(companionType, spiritualPath, userName, userTime);
 
-const anthropicMessages = (messages || []).slice(-20).map(m => {
-  if (Array.isArray(m.content)) {
-    return { role: m.role, content: m.content };
-  }
-  return { role: m.role, content: m.content };
-});
+const anthropicMessages = (messages || []).slice(-20).map(m => ({
+  role: m.role,
+  content: m.content
+}));
 
 const response = await fetch('https://api.anthropic.com/v1/messages', {
   method: 'POST',
