@@ -1,53 +1,67 @@
 const https = require(‘https’);
 
 module.exports = async function handler(req, res) {
-res.setHeader(‘Content-Type’, ‘text/plain; charset=utf-8’);
+res.setHeader(‘Access-Control-Allow-Origin’, ‘*’);
+res.setHeader(‘Access-Control-Allow-Methods’, ‘POST, OPTIONS’);
+res.setHeader(‘Access-Control-Allow-Headers’, ‘Content-Type’);
 
-const key = process.env.ANTHROPIC_API_KEY;
-
-if (!key) {
-return res.status(200).send(‘ERROR: ANTHROPIC_API_KEY no existe en Vercel Environment Variables. Agregala en Settings > Environment Variables y hacé Redeploy.’);
-}
-
-res.write(’API Key encontrada: ’ + key.slice(0, 10) + ‘…\n\n’);
-res.write(‘Haciendo llamada de prueba a Anthropic…\n\n’);
-
-const body = JSON.stringify({
-model: ‘claude-sonnet-4-20250514’,
-max_tokens: 50,
-messages: [{ role: ‘user’, content: ‘Di solo: FUNCIONA’ }]
-});
+if (req.method === ‘OPTIONS’) return res.status(200).end();
+if (req.method !== ‘POST’) return res.status(405).json({ error: ‘Method not allowed’ });
 
 try {
-const result = await new Promise((resolve, reject) => {
-const req2 = https.request({
-hostname: ‘api.anthropic.com’,
-path: ‘/v1/messages’,
-method: ‘POST’,
-headers: {
-‘Content-Type’: ‘application/json’,
-‘x-api-key’: key,
-‘anthropic-version’: ‘2023-06-01’,
-‘Content-Length’: Buffer.byteLength(body)
+const { messages } = req.body;
+
+```
+const key = process.env.ANTHROPIC_API_KEY;
+if (!key) return res.status(500).json({ error: 'Falta ANTHROPIC_API_KEY en Vercel' });
+
+const lastMsg = (messages || []).filter(function(m) {
+  return m && m.role === 'user' && m.content;
+}).slice(-1);
+
+if (lastMsg.length === 0) {
+  lastMsg.push({ role: 'user', content: 'Hola' });
 }
-}, r => {
-let data = ‘’;
-r.on(‘data’, c => { data += c; });
-r.on(‘end’, () => resolve({ status: r.statusCode, body: data }));
-});
-req2.on(‘error’, reject);
-req2.setTimeout(20000, () => req2.destroy(new Error(‘Timeout’)));
-req2.write(body);
-req2.end();
+
+const body = JSON.stringify({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 512,
+  system: 'Eres TuKompa, un acompanante de vida. Responde en espanol, breve y util.',
+  messages: lastMsg
 });
 
-```
-res.write('Status Anthropic: ' + result.status + '\n\n');
-res.write('Respuesta: ' + result.body + '\n');
-return res.end();
+const result = await new Promise(function(resolve, reject) {
+  const r = https.request({
+    hostname: 'api.anthropic.com',
+    path: '/v1/messages',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'Content-Length': Buffer.byteLength(body)
+    }
+  }, function(resp) {
+    var data = '';
+    resp.on('data', function(c) { data += c; });
+    resp.on('end', function() { resolve({ status: resp.statusCode, body: data }); });
+  });
+  r.on('error', reject);
+  r.setTimeout(20000, function() { r.destroy(new Error('Timeout')); });
+  r.write(body);
+  r.end();
+});
+
+if (result.status !== 200) {
+  return res.status(500).json({ error: 'Anthropic error ' + result.status, detail: result.body });
+}
+
+var data = JSON.parse(result.body);
+var text = data.content[0].text;
+return res.status(200).json({ response: text });
 ```
 
-} catch (e) {
-return res.end(’ERROR al conectar con Anthropic: ’ + e.message);
+} catch (err) {
+return res.status(500).json({ error: err.message });
 }
 };
