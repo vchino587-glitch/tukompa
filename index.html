@@ -207,16 +207,14 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
     <p class="section-title" id="companionGreeting">¿Quién te acompaña hoy?</p>
     <p class="section-sub">Podés cambiarlo cuando quieras</p>
     <div class="option-grid cols-2" id="companionGrid" role="radiogroup" aria-label="Tipos de compañero"></div>
-    <button id="companionBtn" class="btn-primary mt-24" onclick="goToSpiritual()" disabled style="max-width:420px;width:100%">Continuar</button>
+    <button id="companionBtn" class="btn-primary mt-24" onclick="startChat()" disabled style="max-width:420px;width:100%">Continuar</button>
   </div>
 </div>
 
-<div id="screen-spiritual" class="screen screen-scroll" aria-label="Camino espiritual">
-  <div style="width:100%;max-width:480px;text-align:center;padding-bottom:40px;position:relative;z-index:1">
-    <p class="section-title">Camino espiritual</p>
-    <p class="section-sub">TuKompa se adapta a tu visión del mundo</p>
-    <div class="option-grid cols-3" id="spiritualGrid" role="radiogroup" aria-label="Caminos espirituales"></div>
-    <button id="spiritualBtn" class="btn-primary mt-24" onclick="startChat()" disabled style="max-width:420px;width:100%">Comenzar</button>
+```
+<button id="spiritualBtn" class="btn-primary mt-24" onclick="startChat()" disabled style="max-width:420px;width:100%">Comenzar</button>
+```
+
   </div>
 </div>
 
@@ -436,7 +434,6 @@ let S = {
 /* ═══ INIT ═══ */
 document.addEventListener('DOMContentLoaded', () => {
   renderGrid('companionGrid',CD,false,false);
-  renderGrid('spiritualGrid',SD,false,true);
   loadState();
   if (S.userName && S.companionType && S.spiritualPath) restoreSession();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
@@ -488,9 +485,10 @@ function goToCompanion() {
   document.getElementById('companionGreeting').textContent = 'Hola '+v+' 👋';
   showScreen('companion');
 }
-function goToSpiritual() { if (S.companionType) showScreen('spiritual'); }
+function goToSpiritual() { if (S.companionType) startChat(); }
 function startChat() {
-  if (!S.spiritualPath) return;
+  if (!S.companionType) return;
+  S.spiritualPath = 'ninguno';
   if (!S.firstDay) S.firstDay = Date.now();
   showScreen('chat'); applyCompanionUI(); updateXpUI(); sendWelcomeMessage(); saveState();
 }
