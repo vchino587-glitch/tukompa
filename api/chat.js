@@ -1,97 +1,95 @@
-module.exports = async function handler(req, res) {
+const https = require(‘https’);
+
+module.exports = function(req, res) {
 res.setHeader(‘Access-Control-Allow-Origin’, ‘*’);
 res.setHeader(‘Access-Control-Allow-Methods’, ‘POST, OPTIONS’);
 res.setHeader(‘Access-Control-Allow-Headers’, ‘Content-Type’);
-if (req.method === ‘OPTIONS’) return res.status(200).end();
 
-try {
-const { messages, userName, userTime } = req.body || {};
+if (req.method === ‘OPTIONS’) { res.status(200).end(); return; }
 
-```
-const nombre = userName || 'amigo';
-const h = userTime ? parseInt(userTime.hour) : new Date().getHours();
-const d = userTime ? userTime.dayName : '';
-const momento = h < 6 ? 'madrugada' : h < 12 ? 'mañana' : h < 18 ? 'tarde' : 'noche';
+var key = process.env.ANTHROPIC_API_KEY;
+if (!key) { res.status(200).json({ response: ‘Falta API key en Vercel’ }); return; }
 
-const system = `Eres Profundidad — la inteligencia invisible que acompaña a ${nombre}. No eres un chatbot. Eres una presencia.
-```
-
-TIEMPO ACTUAL: ${h}hs del ${d} (${momento}).
-
-━━━ DETECCIÓN DE ROL (automática, nunca la anuncias) ━━━
-Detectas lo que necesita el usuario y respondés desde ese lugar sin nombrarlo:
-• Necesita motivación → coach directo y energizante
-• Necesita ser escuchado → terapeuta que contiene sin juzgar
-• Busca sabiduría → guía sereno con metáforas profundas
-• Momento cotidiano → amigo leal con humor real
-• Necesita estrategia → mentor ejecutivo y preciso
-• Necesita confiar → confidente discreto, cero juicio
-
-━━━ LEY DE LONGITUD — OBLIGATORIA ━━━
-Respondés con EXACTAMENTE el largo que el momento necesita. Ni una palabra más.
-• Saludo o bienvenida: 1 a 2 oraciones máximo
-• Verdad transformadora: puede ser 1 sola oración
-• Pregunta práctica: respuesta directa + 2-3 pasos concretos
-• Dolor o crisis: 4-6 oraciones de contención real
-• Momento cotidiano: 2-3 oraciones naturales
-NUNCA más largo de lo necesario. La brevedad es poder.
-
-━━━ VOZ PRIMERO ━━━
-Escribís como se habla. Sin guiones, sin listas, sin asteriscos, sin numeración, sin símbolos especiales. Fluido, natural, humano. Las respuestas se escuchan en voz alta.
-
-━━━ PROHIBIDO ━━━
-Frases vacías como “Claro que sí”, “Por supuesto”, “Excelente pregunta”, “Entiendo perfectamente”. Nunca repetir lo que dijo el usuario para rellenar. Nunca el relleno.
-
-━━━ CONOCIMIENTO ━━━
-Finanzas y libertad financiera, productividad y hábitos, negocios y emprendimiento, salud integral, relaciones y comunicación, psicología, aprendizaje acelerado, creatividad, espiritualidad universal.
-
-━━━ PSICOLOGÍA INVISIBLE ━━━
-Creás conexión emocional genuina sin que el usuario lo perciba. Usás principios de psicología positiva, motivacional y cognitivo-conductual sin nombrarlos. El usuario debe sentir que alguien de verdad lo entiende.
-
-━━━ REGLAS ABSOLUTAS ━━━
-Nunca juzgás. Nunca inventás datos ni cifras. Siempre en español. En crisis real: Argentina 135 · México 800-290-0024 · befrienders.org`;
+// Leer body manualmente por si Vercel no lo parsea
+var raw = ‘’;
+req.on(‘data’, function(c) { raw += c; });
+req.on(‘end’, function() {
+var body = {};
+try { body = JSON.parse(raw); } catch(e) {}
 
 ```
-// Limpiar y validar historial
-const raw = Array.isArray(messages) ? messages : [];
-const clean = [];
-for (const m of raw) {
-  if (!m || !m.role || typeof m.content !== 'string' || !m.content.trim()) continue;
-  const prev = clean[clean.length - 1];
-  if (prev && prev.role === m.role) continue; // evitar mismo rol consecutivo
-  clean.push({ role: m.role, content: m.content.trim() });
+var messages = Array.isArray(body.messages) ? body.messages : [];
+var userName = body.userName || 'amigo';
+var userTime = body.userTime || {};
+var h = parseInt(userTime.hour) || new Date().getHours();
+var d = userTime.dayName || '';
+var m = h < 6 ? 'madrugada' : h < 12 ? 'manana' : h < 18 ? 'tarde' : 'noche';
+
+var system = 'Eres Profundidad, inteligencia invisible que acompana a ' + userName + '. Tiempo: ' + h + 'hs del ' + d + ' (' + m + ').\n\n' +
+  'ROL AUTOMATICO sin anunciarlo: motivacion=coach directo | dolor=terapeuta | sabiduria=guia sereno | cotidiano=amigo leal | estrategia=mentor.\n\n' +
+  'LEY DE LONGITUD: saludo=1-2 oraciones. verdad poderosa=1 oracion. pregunta practica=respuesta+pasos. dolor=4-6 oraciones. NUNCA mas largo de lo necesario.\n\n' +
+  'VOZ: escribis como se habla, sin listas ni guiones ni asteriscos.\n' +
+  'PROHIBIDO: frases vacias, "Claro que si", "Excelente pregunta", repetir mensajes.\n' +
+  'CONOCIMIENTO: finanzas, negocios, salud, relaciones, psicologia, productividad, creatividad.\n' +
+  'REGLAS: nunca juzgar, nunca inventar datos, siempre en espanol. Crisis: AR 135.';
+
+// Limpiar mensajes
+var clean = [];
+for (var i = 0; i < messages.length; i++) {
+  var mg = messages[i];
+  if (!mg || !mg.role || typeof mg.content !== 'string' || !mg.content.trim()) continue;
+  var prev = clean[clean.length - 1];
+  if (prev && prev.role === mg.role) continue;
+  clean.push({ role: mg.role, content: mg.content.trim() });
 }
-
-// Garantizar que termina en 'user'
-if (!clean.length || clean[clean.length - 1].role !== 'user') {
+if (!clean.length || clean[clean.length-1].role !== 'user') {
   clean.push({ role: 'user', content: 'Hola' });
 }
 
-const response = await fetch('https://api.anthropic.com/v1/messages', {
+var payload = JSON.stringify({
+  model: 'claude-sonnet-4-20250514',
+  max_tokens: 800,
+  system: system,
+  messages: clean.slice(-16)
+});
+
+var apiReq = https.request({
+  hostname: 'api.anthropic.com',
+  path: '/v1/messages',
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'x-api-key': process.env.ANTHROPIC_API_KEY,
-    'anthropic-version': '2023-06-01'
-  },
-  body: JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1024,
-    system,
-    messages: clean.slice(-20)
-  })
+    'x-api-key': key,
+    'anthropic-version': '2023-06-01',
+    'Content-Length': Buffer.byteLength(payload)
+  }
+}, function(apiRes) {
+  var data = '';
+  apiRes.on('data', function(c) { data += c; });
+  apiRes.on('end', function() {
+    if (apiRes.statusCode !== 200) {
+      res.status(200).json({ response: 'Error API: ' + apiRes.statusCode + ' - ' + data.slice(0,150) });
+      return;
+    }
+    try {
+      var parsed = JSON.parse(data);
+      res.status(200).json({ response: parsed.content[0].text });
+    } catch(e) {
+      res.status(200).json({ response: 'Error parse: ' + e.message });
+    }
+  });
 });
 
-const data = await response.json();
-if (!response.ok) {
-  console.error('Anthropic error:', data);
-  return res.status(500).json({ error: 'API error', detail: JSON.stringify(data) });
-}
-return res.status(200).json({ response: data.content[0].text });
+apiReq.on('error', function(e) {
+  res.status(200).json({ response: 'Error red: ' + e.message });
+});
+apiReq.setTimeout(18000, function() {
+  apiReq.destroy();
+  res.status(200).json({ response: 'Timeout. Intentalo de nuevo.' });
+});
+apiReq.write(payload);
+apiReq.end();
 ```
 
-} catch (err) {
-console.error(‘Handler error:’, err.message);
-return res.status(500).json({ error: err.message });
-}
-}
+});
+};
